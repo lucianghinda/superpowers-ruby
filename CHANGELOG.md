@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.1.0] - 2026-03-30
+
+### Added
+
+- **rails-upgrade skill**: New self-contained skill for upgrading Rails applications (5.2 through 8.1). Merges the best of [OmbuLabs/FastRuby.io](https://github.com/ombulabs/claude-code_rails-upgrade-skill) and [Mario Alberto Chávez Cárdenas](https://github.com/mariochavez/rails-upgrade-skill) (both MIT). Features direct Grep/Glob/Read detection (no script round-trip), live config diffs via the railsdiff.org GitHub API, 3 hard gates (test baseline, load_defaults verification, user approval), and 7 reference files covering breaking changes, deprecation timeline, gem compatibility, load_defaults guide, detection patterns, dual-boot setup, and troubleshooting. Includes `scripts/fetch-changelogs.sh` to pull component CHANGELOGs from GitHub for any Rails version. ([PR #7](https://github.com/lucianghinda/superpowers-ruby/pull/7))
+
 ## [6.0.1] - 2026-03-30
 
 ### Changed
