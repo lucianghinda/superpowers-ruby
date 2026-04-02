@@ -72,15 +72,13 @@ git clone https://github.com/lucianghinda/superpowers-ruby.git
 /plugin install ./superpowers-ruby
 ```
 
-### Cursor (via Plugin Marketplace)
+### Cursor 
 
-In Cursor Agent chat, install from marketplace:
+Until the plugin is published on the cursor marketplace, use this command : 
 
-```text
-/add-plugin superpowers
 ```
-
-or search for "superpowers" in the plugin marketplace.
+cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpowers-ruby
+```
 
 ### Codex
 
