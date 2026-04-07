@@ -100,6 +100,13 @@ Fetch and follow instructions from https://raw.githubusercontent.com/lucianghind
 
 **Detailed docs:** [docs/README.opencode.md](docs/README.opencode.md)
 
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add lucianghinda/superpowers-ruby
+copilot plugin install superpowers-ruby@superpowers-ruby
+```
+
 ### Gemini CLI
 
 ```bash

@@ -1,13 +1,12 @@
 /**
  * Superpowers plugin for OpenCode.ai
  *
- * Injects superpowers bootstrap context via system prompt transform.
+ * Injects superpowers-ruby bootstrap context into the first user message.
  * Auto-registers skills directory via config hook (no symlinks needed).
  */
 
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,24 +32,8 @@ const extractAndStripFrontmatter = (content) => {
   return { frontmatter, content: body };
 };
 
-// Normalize a path: trim whitespace, expand ~, resolve to absolute
-const normalizePath = (p, homeDir) => {
-  if (!p || typeof p !== 'string') return null;
-  let normalized = p.trim();
-  if (!normalized) return null;
-  if (normalized.startsWith('~/')) {
-    normalized = path.join(homeDir, normalized.slice(2));
-  } else if (normalized === '~') {
-    normalized = homeDir;
-  }
-  return path.resolve(normalized);
-};
-
 export const SuperpowersPlugin = async ({ client, directory }) => {
-  const homeDir = os.homedir();
   const superpowersSkillsDir = path.resolve(__dirname, '../../skills');
-  const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
-  const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
 
   // Helper to generate bootstrap content
   const getBootstrapContent = () => {
@@ -68,12 +51,10 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 - \`Skill\` tool → OpenCode's native \`skill\` tool
 - \`Read\`, \`Write\`, \`Edit\`, \`Bash\` → Your native tools
 
-**Skills location:**
-Superpowers skills are in \`${configDir}/skills/superpowers/\`
-Use OpenCode's native \`skill\` tool to list and load skills.`;
+Use OpenCode's native \`skill\` tool to list and load superpowers-ruby skills.`;
 
     return `<EXTREMELY_IMPORTANT>
-You have superpowers.
+You have superpowers for Ruby and Rails.
 
 **IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
 
@@ -96,12 +77,17 @@ ${toolMapping}
       }
     },
 
-    // Use system prompt transform to inject bootstrap (fixes #226 agent reset bug)
-    'experimental.chat.system.transform': async (_input, output) => {
+    // Inject bootstrap into the first user message (avoids per-turn token cost
+    // of system messages and fixes model compatibility with Qwen and others).
+    'experimental.chat.messages.transform': async (_input, output) => {
       const bootstrap = getBootstrapContent();
-      if (bootstrap) {
-        (output.system ||= []).push(bootstrap);
-      }
+      if (!bootstrap || !output.messages.length) return;
+      const firstUser = output.messages.find(m => m.info.role === 'user');
+      if (!firstUser || !firstUser.parts.length) return;
+      // Only inject once
+      if (firstUser.parts.some(p => p.type === 'text' && p.text.includes('EXTREMELY_IMPORTANT'))) return;
+      const ref = firstUser.parts[0];
+      firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
     }
   };
 };
