@@ -137,6 +137,20 @@ This skill also runs automatically via hooks when context compaction occurs:
 
 The hook-generated handoff captures mechanical state only (modified files, plan files). After compaction, the `PostCompact` hook (or `session.compacted` event) restores the handoff as `additionalContext` and instructs the agent to fill in the LLM-dependent sections from compacted context.
 
+## Cross-Agent Handoff
+
+Handoff documents are plain markdown files in `docs/handoffs/` — any agent or tool that can read the filesystem can resume from them. This makes handoffs work across agent boundaries, not just within the same session.
+
+**Use cases:**
+
+- **Claude Code → OpenCode:** Create a handoff in Claude Code, then open OpenCode in the same project. Use `/superpowers-ruby:handoff-resume` to pick up where Claude Code left off.
+- **Agent → Human:** A developer reviews `docs/handoffs/` to understand what the agent was working on, then continues manually or starts a new session with context.
+- **Human → Agent:** A developer writes a handoff document manually (following the template above) to brief an agent on work-in-progress before starting a session.
+- **Subagent → Parent:** A subagent creates a handoff before finishing, so the orchestrating agent can dispatch a new subagent with full context.
+- **Session A → Session B (same tool):** End a Claude Code session, start a fresh one later. The handoff persists on disk — use `handoff-resume` to continue.
+
+**Why this works:** The handoff document is the contract. It doesn't depend on any specific agent's memory, context window, or session state. Any agent that can read markdown and follow instructions can resume from it.
+
 ## Pairs With
 
 - **superpowers-ruby:handoff-resume** — Resume from a handoff in a new session
