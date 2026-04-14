@@ -7,6 +7,7 @@
 
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -88,6 +89,44 @@ ${toolMapping}
       if (firstUser.parts.some(p => p.type === 'text' && p.text.includes('EXTREMELY_IMPORTANT'))) return;
       const ref = firstUser.parts[0];
       firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
+    },
+
+    // Capture handoff document before compaction
+    'experimental.session.compacting': async () => {
+      const hookScript = path.resolve(__dirname, '../../hooks/handoff-create');
+      if (!fs.existsSync(hookScript)) return;
+      try {
+        execSync(`bash "${hookScript}" --trigger compact`, {
+          cwd: directory || process.cwd(),
+          timeout: 10000,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+      } catch (_e) {
+        // Handoff capture is best-effort — don't block compaction on failure
+      }
+    },
+
+    // Restore handoff document after compaction
+    'session.compacted': async () => {
+      const hookScript = path.resolve(__dirname, '../../hooks/handoff-restore');
+      if (!fs.existsSync(hookScript)) return;
+      try {
+        const output = execSync(`bash "${hookScript}"`, {
+          cwd: directory || process.cwd(),
+          timeout: 10000,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          encoding: 'utf8'
+        });
+        if (output && output.trim()) {
+          const parsed = JSON.parse(output.trim());
+          const context = parsed.additionalContext;
+          if (context) {
+            return { additionalContext: context };
+          }
+        }
+      } catch (_e) {
+        // Restore is best-effort — session continues without handoff on failure
+      }
     }
   };
 };

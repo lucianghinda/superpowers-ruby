@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# PreCompact / manual handoff hook for superpowers plugin
+# Creates a handoff document capturing session state in docs/handoffs/
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Parse arguments
+TRIGGER="manual"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --trigger) TRIGGER="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
+# Find project root (git toplevel)
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# Ensure handoff directories exist
+mkdir -p "${PROJECT_ROOT}/docs/handoffs/_archive"
+
+# Gather git state
+BRANCH="$(git branch --show-current 2>/dev/null || echo 'detached')"
+TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%S+00:00)"
+DATE_PREFIX="$(date -u +%Y-%m-%d)"
+
+# Modified files: staged + unstaged + untracked
+MODIFIED_FILES=""
+while IFS= read -r line; do
+  if [ -n "$line" ]; then
+    # Extract filename from porcelain output (skip the 3-char status prefix)
+    fname="${line:3}"
+    if [ -n "$fname" ]; then
+      MODIFIED_FILES="${MODIFIED_FILES}- ${fname}\n"
+    fi
+  fi
+done < <(git status --porcelain 2>/dev/null || true)
+
+if [ -z "$MODIFIED_FILES" ]; then
+  MODIFIED_FILES="- (no uncommitted changes)\n"
+fi
+
+# Scan for plan/spec files to include in "Files to Read"
+FILES_TO_READ=""
+
+# Claude Code plan files
+if [ -d "${PROJECT_ROOT}/.claude/plans" ]; then
+  for f in "${PROJECT_ROOT}/.claude/plans"/*.md; do
+    [ -f "$f" ] || continue
+    rel="${f#"${PROJECT_ROOT}/"}"
+    FILES_TO_READ="${FILES_TO_READ}- \`${rel}\` (Claude Code plan)\n"
+  done
+fi
+
+# Superpowers specs
+if [ -d "${PROJECT_ROOT}/docs/superpowers/specs" ]; then
+  for f in "${PROJECT_ROOT}/docs/superpowers/specs"/*.md; do
+    [ -f "$f" ] || continue
+    rel="${f#"${PROJECT_ROOT}/"}"
+    FILES_TO_READ="${FILES_TO_READ}- \`${rel}\` (spec)\n"
+  done
+fi
+
+# Superpowers plans
+if [ -d "${PROJECT_ROOT}/docs/superpowers/plans" ]; then
+  for f in "${PROJECT_ROOT}/docs/superpowers/plans"/*.md; do
+    [ -f "$f" ] || continue
+    rel="${f#"${PROJECT_ROOT}/"}"
+    FILES_TO_READ="${FILES_TO_READ}- \`${rel}\` (plan)\n"
+  done
+fi
+
+if [ -z "$FILES_TO_READ" ]; then
+  FILES_TO_READ="- (no plan or spec files found)\n"
+fi
+
+# Generate topic slug from branch name
+# Strip common prefixes (feature/, fix/, lg/, etc.), convert / and _ to -
+TOPIC="$(echo "$BRANCH" | sed -E 's|^[a-z]+/||' | tr '/_' '-' | tr '[:upper:]' '[:lower:]')"
+if [ -z "$TOPIC" ] || [ "$TOPIC" = "detached" ]; then
+  TOPIC="session-$(date -u +%H%M%S)"
+fi
+
+# Build filename — avoid collisions by appending counter if needed
+HANDOFF_FILE="${PROJECT_ROOT}/docs/handoffs/${DATE_PREFIX}-${TOPIC}.md"
+if [ -f "$HANDOFF_FILE" ]; then
+  COUNTER=2
+  while [ -f "${PROJECT_ROOT}/docs/handoffs/${DATE_PREFIX}-${TOPIC}-${COUNTER}.md" ]; do
+    COUNTER=$((COUNTER + 1))
+  done
+  HANDOFF_FILE="${PROJECT_ROOT}/docs/handoffs/${DATE_PREFIX}-${TOPIC}-${COUNTER}.md"
+fi
+
+# Write the handoff document using printf (no heredocs — bash 5.3+ compat)
+{
+  printf '%s\n' '---'
+  printf 'created: %s\n' "$TIMESTAMP"
+  printf 'branch: %s\n' "$BRANCH"
+  printf 'trigger: %s\n' "$TRIGGER"
+  printf 'restored: false\n'
+  printf 'topic: %s\n' "$TOPIC"
+  printf '%s\n' '---'
+  printf '\n'
+  printf '# Handoff: %s\n' "$TOPIC"
+  printf '\n'
+  printf '## Goal\n'
+  printf '\n'
+  printf '<!-- to be enriched by LLM -->\n'
+  printf '\n'
+  printf '## Current State\n'
+  printf '\n'
+  printf '<!-- to be enriched by LLM -->\n'
+  printf '\n'
+  printf '## Key Decisions\n'
+  printf '\n'
+  printf '<!-- to be enriched by LLM -->\n'
+  printf '\n'
+  printf '## Modified Files\n'
+  printf '\n'
+  printf '%b' "$MODIFIED_FILES"
+  printf '\n'
+  printf '## Failed Approaches\n'
+  printf '\n'
+  printf '<!-- to be enriched by LLM -->\n'
+  printf '\n'
+  printf '## Files to Read\n'
+  printf '\n'
+  printf '%b' "$FILES_TO_READ"
+  printf '\n'
+  printf '## Next Steps\n'
+  printf '\n'
+  printf '<!-- to be enriched by LLM -->\n'
+  printf '\n'
+  printf '## Open Questions\n'
+  printf '\n'
+  printf '<!-- to be enriched by LLM -->\n'
+} > "$HANDOFF_FILE"
+
+# Output the created file path (for hooks and callers)
+printf '%s\n' "$HANDOFF_FILE"
+
+exit 0
