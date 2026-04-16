@@ -1,5 +1,13 @@
 # Superpowers Release Notes
 
+## v6.3.0 (2026-04-14)
+
+### Session Continuity
+
+- **handoff** — new skill that captures session state (goals, decisions, modified files, failed approaches, next steps) to `docs/handoffs/` so future sessions or different agents can resume seamlessly. Three commands: `/superpowers-ruby:handoff` (create), `/superpowers-ruby:handoff-resume` (restore), `/superpowers-ruby:handoff-list` (browse).
+- **Automatic compaction handoff** — `PreCompact`/`PostCompact` hooks (Claude Code) and `experimental.session.compacting`/`session.compacted` events (OpenCode) capture and restore handoff documents automatically around context compaction. Codex gets manual-only support.
+- **Cross-agent handoff** — handoff documents are plain markdown with YAML frontmatter, readable by any agent or tool. Supports Claude Code → OpenCode, agent → human, human → agent, and subagent → parent handoff scenarios.
+
 ## v6.2.0 (2026-04-03)
 
 ### Workflow Improvements

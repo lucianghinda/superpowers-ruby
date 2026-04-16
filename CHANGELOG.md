@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.3.0] - 2026-04-14
+
+### Added
+
+- **handoff skill**: Captures session state (goals, decisions, modified files, failed approaches, next steps) to `docs/handoffs/` so future sessions or different agents can resume seamlessly. Three commands: `superpowers-ruby:handoff` (create), `superpowers-ruby:handoff-resume` (restore), `superpowers-ruby:handoff-list` (browse).
+- **Automatic compaction handoff**: `PreCompact`/`PostCompact` hooks (Claude Code) and `experimental.session.compacting`/`session.compacted` events (OpenCode) capture and restore handoff documents automatically around context compaction. Codex gets manual-only support.
+- **Cross-agent handoff**: Handoff documents are plain markdown with YAML frontmatter, readable by any agent or tool. Supports Claude Code → OpenCode, agent → human, human → agent, and subagent → parent handoff scenarios.
+
+## [6.2.0] - 2026-04-03
+
+### Changed
+
+- **brainstorming**: Replaced Spec Review Loop (subagent dispatch + 3-iteration cap) with inline Spec Self-Review checklist: placeholder scan, internal consistency, scope check, ambiguity check. Eliminates a brittle multi-agent loop that doubled execution time.
+- **writing-plans**: Replaced Plan Review Loop with inline Self-Review checklist: spec coverage, placeholder scan, type consistency. Added explicit "No Placeholders" section defining plan failures (TBD, vague descriptions, undefined references, "similar to Task N").
+
+### Added
+
+- **GitHub Copilot CLI support**: SessionStart hook detects `COPILOT_CLI` environment variable and emits SDK-standard `{ "additionalContext": "..." }` format. Added `references/copilot-tools.md` with full Claude Code → Copilot CLI tool equivalence table.
+- **codex-tools**: Added named agent dispatch mapping documenting how to translate Claude Code's named agent types to Codex's `spawn_agent` with worker roles.
+
 ## [6.1.0] - 2026-03-30
 
 ### Added

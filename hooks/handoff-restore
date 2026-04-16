@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# PostCompact hook for superpowers plugin
+# Restores the latest unrestored handoff document as additionalContext
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Find project root (git toplevel)
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+HANDOFF_DIR="${PROJECT_ROOT}/docs/handoffs"
+
+# If no handoffs directory, nothing to do
+if [ ! -d "$HANDOFF_DIR" ]; then
+  exit 0
+fi
+
+# Find the latest unrestored handoff file (most recently modified)
+LATEST=""
+LATEST_MTIME=0
+for f in "${HANDOFF_DIR}"/*.md; do
+  [ -f "$f" ] || continue
+  # Check if frontmatter contains "restored: false"
+  if head -20 "$f" | grep -q '^restored: false$'; then
+    # Get modification time as epoch seconds (portable across macOS/Linux)
+    if stat --version >/dev/null 2>&1; then
+      # GNU stat (Linux)
+      mtime="$(stat -c '%Y' "$f")"
+    else
+      # BSD stat (macOS)
+      mtime="$(stat -f '%m' "$f")"
+    fi
+    if [ "$mtime" -gt "$LATEST_MTIME" ]; then
+      LATEST_MTIME="$mtime"
+      LATEST="$f"
+    fi
+  fi
+done
+
+# No unrestored handoff found — exit silently
+if [ -z "$LATEST" ]; then
+  exit 0
+fi
+
+# Read handoff content
+HANDOFF_CONTENT="$(cat "$LATEST")"
+
+# Mark as restored: update frontmatter
+RESTORE_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%S+00:00)"
+# Replace "restored: false" with "restored: true" and add restored_at
+if sed --version >/dev/null 2>&1; then
+  # GNU sed
+  sed -i "s/^restored: false$/restored: true\nrestored_at: ${RESTORE_TIMESTAMP}/" "$LATEST"
+else
+  # BSD sed (macOS)
+  sed -i '' "s/^restored: false$/restored: true\\
+restored_at: ${RESTORE_TIMESTAMP}/" "$LATEST"
+fi
+
+# Archive the file
+mkdir -p "${HANDOFF_DIR}/_archive"
+mv "$LATEST" "${HANDOFF_DIR}/_archive/"
+
+# Escape string for JSON embedding (same pattern as session-start)
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+ESCAPED_CONTENT=$(escape_for_json "$HANDOFF_CONTENT")
+SESSION_CONTEXT="<handoff-restored>\nThe following handoff document was captured before compaction. Use it to restore your understanding of the current session.\n\n${ESCAPED_CONTENT}\n\nContinue working from the Next Steps section. If sections contain '<!-- to be enriched by LLM -->' markers, fill them in from your compacted context before proceeding.\n</handoff-restored>"
+
+# Output JSON with additionalContext (platform-aware)
+# Uses printf instead of heredoc for bash 5.3+ compatibility
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$SESSION_CONTEXT"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "PostCompact",\n    "additionalContext": "%s"\n  }\n}\n' "$SESSION_CONTEXT"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$SESSION_CONTEXT"
+fi
+
+exit 0

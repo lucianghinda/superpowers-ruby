@@ -136,6 +136,14 @@ All available skills — invoke with the `Skill` tool using the `name` value.
 | `superpowers-ruby:using-git-worktrees` | When needing isolated git worktrees for parallel work |
 | `superpowers-ruby:compound` | When a non-trivial problem has just been solved — capture the solution |
 
+### Session Continuity
+
+| Name | When to Use |
+|------|-------------|
+| `superpowers-ruby:handoff` | When capturing session state before switching context, ending a session, or manually preserving progress |
+| `superpowers-ruby:handoff-resume` | When starting a new session and wanting to continue from a previous handoff |
+| `superpowers-ruby:handoff-list` | When viewing available handoff documents |
+
 ### Ruby & Rails
 
 | Name | When to Use |
