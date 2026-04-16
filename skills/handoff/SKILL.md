@@ -42,15 +42,34 @@ Capture the current session's state into a structured handoff document so a futu
 Run these commands to collect file-level state:
 
 ```bash
-# Modified files
+# Branch and modified files
+git branch --show-current
 git diff --name-only
 git status --porcelain
 
-# Detect plan files
+# Detect plan/spec files in current repo context
 ls .claude/plans/*.md 2>/dev/null
 ls docs/superpowers/specs/*.md 2>/dev/null
 ls docs/superpowers/plans/*.md 2>/dev/null
+ls docs/specs/**/*.md 2>/dev/null
+ls docs/handoffs/*.md 2>/dev/null
+
+# Capture recently created docs in this session scope
+find docs -type f -name "*.md" -mtime -2 2>/dev/null
 ```
+
+### Step 1b: Cross-Root Context Check (Required in nested/worktree flows)
+
+If you are running from a nested directory or git worktree, also inspect the parent project root for docs created earlier in the same session.
+
+```bash
+# Resolve git root and inspect canonical docs locations from there
+ROOT="$(git rev-parse --show-toplevel)"
+ls "$ROOT"/docs/specs/**/*.md 2>/dev/null
+ls "$ROOT"/docs/handoffs/*.md 2>/dev/null
+```
+
+If root-level docs exist and are relevant to active work, they **must** be included in `Files to Read`.
 
 ### Step 2: Generate Topic
 
@@ -96,6 +115,9 @@ topic: <topic slug>
 ## Files to Read
 <Plan files, specs, design docs the next session should read first — bullet list with backtick paths>
 
+## Related Spec Docs (Outside Current Worktree)
+<If docs/specs or other relevant docs live outside the current execution directory, list them explicitly>
+
 ## Next Steps
 <Concrete actions to take next — numbered list, most important first>
 
@@ -112,9 +134,23 @@ Unlike the hook-triggered version (which leaves `<!-- to be enriched by LLM -->`
 - **Key Decisions:** Design choices, trade-offs, rejected alternatives with reasons
 - **Modified Files:** From git commands in Step 1
 - **Failed Approaches:** Debugging dead ends, approaches that were tried and abandoned
-- **Files to Read:** Plan files from Step 1 plus any files the user specifically referenced
+- **Files to Read:**
+  - plan files from Step 1,
+  - specs/handoffs detected in Step 1 and Step 1b,
+  - any files the user specifically referenced,
+  - any docs created in this session.
+- **Related Spec Docs (Outside Current Worktree):** Required when Step 1b finds relevant docs outside the current execution directory.
 - **Next Steps:** The remaining work, ordered by priority
 - **Open Questions:** Anything that needs clarification before the next session can proceed
+
+### Step 4.5: Completeness Gate (Required)
+
+Do **not** save or confirm handoff until this checklist passes:
+
+- All user-referenced docs are present in `Files to Read` or `Related Spec Docs`.
+- All relevant docs created in this session are present in `Files to Read` or `Related Spec Docs`.
+- Root-level `docs/specs` files are included when work was planned there, even if implementation happened in a nested worktree.
+- If any item is missing, update the handoff before confirming.
 
 ### Step 5: Confirm
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.3.1] - 2026-04-16
+
+### Fixed
+
+- **handoff skill completeness gap**: Manual handoffs could miss important docs created outside the current execution directory (for example, specs created in a repo root while implementation happened in a nested worktree). This caused incomplete `Files to Read` sections in some real workflows.
+
+### Changed
+
+- **Cross-root document discovery**: The handoff process now explicitly scans both local and root-level docs paths, including `docs/specs/**/*.md` and `docs/handoffs/*.md`, plus recently created markdown files.
+- **Nested/worktree safeguard**: Added required `Step 1b` cross-root context check so nested sessions include relevant root docs.
+- **Handoff template expanded**: Added `Related Spec Docs (Outside Current Worktree)` section for documents that live outside the current execution directory.
+- **Pre-save completeness gate**: Added a required validation checklist that blocks confirmation until user-referenced docs, session-created docs, and relevant root-level specs are included.
+
 ## [6.3.0] - 2026-04-14
 
 ### Added
