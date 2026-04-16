@@ -1,5 +1,15 @@
 # Superpowers Release Notes
 
+## v6.3.1 (2026-04-16)
+
+### Handoff Reliability
+
+- **Fixed missing-doc handoffs in nested/worktree sessions** — manual handoffs could omit important spec documents when those docs were created at repo root and implementation happened in a nested worktree.
+- **Cross-root doc discovery** — handoff now scans both local and root-level docs paths, including `docs/specs/**/*.md` and `docs/handoffs/*.md`, and recent markdown files.
+- **Required nested context check (`Step 1b`)** — when running from nested/worktree directories, the skill now requires an explicit root-level context pass.
+- **Expanded handoff template** — added `Related Spec Docs (Outside Current Worktree)` so cross-location docs are listed intentionally.
+- **Pre-save completeness gate** — handoff confirmation now requires that user-referenced docs, session-created docs, and relevant root-level specs are all present in `Files to Read` or `Related Spec Docs`.
+
 ## v6.3.0 (2026-04-14)
 
 ### Session Continuity
