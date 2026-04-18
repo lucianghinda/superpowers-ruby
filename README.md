@@ -177,6 +177,7 @@ Start a new session in your chosen platform and ask for something that should tr
 - **requesting-code-review** - Pre-review checklist
 - **receiving-code-review** - Responding to feedback
 - **using-git-worktrees** - Parallel development branches
+- **using-sqlite-worktrees** - Copies Rails SQLite development databases (incl. Solid Queue/Cache/Cable) into a new worktree, with WAL checkpointing and backup-before-overwrite
 - **finishing-a-development-branch** - Merge/PR decision workflow
 - **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
 
