@@ -1,9 +1,10 @@
 # using-sqlite-worktrees — Implementation Plan
 
-**Version:** 1.0
-**Status:** Draft
+**Version:** 1.1
+**Status:** Reviewed (engineering review — Scope Challenge + Test Review)
 **Date:** 2026-04-18
 **Mode:** New Feature (skill addition to `superpowers-ruby`)
+**Revision note (1.1):** Applied findings F1–F8 from targeted engineering review. Added overwrite policy (F4), integration failure contract (F5), missing-database.yml test (F6), non-worktree-path test (F7), DB-locked scenario (F8), `sqlite3 .backup` design rationale (F3), tightened Unit 4 file list (F1), trimmed Unit 5 to smoke test (F2).
 
 ## Problem Frame
 
@@ -123,8 +124,10 @@
 4. Reuse the YAML parsing + `extract_database_paths` logic verbatim — that handles the multi-DB Solid* case cleanly.
 5. Reuse `checkpoint_wal_files` verbatim. On `Errno::ENOENT` for the `sqlite3` CLI, abort with a clear install instruction (not `break` as postcraftstudio does).
 6. Reuse `source_files` + `copy_databases` logic, targeting `<worktree-path>/storage/` instead of resolving from ARGV.
-7. Print a structured summary on success; structured error + non-zero exit on failure.
-8. Add frozen_string_literal magic comment; stick to stdlib only (no gems).
+7. **Overwrite policy (F4):** Before overwriting any existing file in target `storage/`, rename it to `<filename>.bak`. If a `.bak` already exists, overwrite the `.bak` (one level of backup is enough). Print each backup path in the summary so the user can recover.
+8. Print a structured summary on success; structured error + non-zero exit on failure.
+9. Add frozen_string_literal magic comment; stick to stdlib only (no gems).
+10. **Design note — why `cp` and not `sqlite3 .backup` (F3):** SQLite's native `.backup` command is atomic and doesn't require manual WAL checkpointing or sidecar-file copies. We use the `cp` + checkpoint approach because (a) it matches the proven `postcraftstudio` source, (b) worktree creation typically happens with no concurrent writer, and (c) it avoids shelling out to `sqlite3` for the copy itself (only for the checkpoint). Future maintainers considering a switch to `.backup` should weigh the atomicity win against the extra `sqlite3` process per DB. Document this tradeoff in a short comment at the top of the script.
 
 **Patterns:**
 - Follow postcraftstudio's class-based structure (`WorktreeCreator` equivalent, perhaps renamed `SqliteWorktreePopulator`)
@@ -136,9 +139,13 @@
 - [ ] Happy path: Multi-DB Rails 8 (Solid* trio) → all 5 dev DBs + their WAL/SHM files copied
 - [ ] Nil/empty input: Worktree path doesn't exist → exit 1 with clear message
 - [ ] Nil/empty input: No `.sqlite3` files found (fresh project, no migrations run yet) → exit 0 with informational message, not an error
+- [ ] Nil/empty input: `config/database.yml` missing entirely (non-Rails dir) → exit 1 with "Is this a Rails project?" message **(F6)**
 - [ ] Error path: `sqlite3` CLI not installed → exit 1 with install hint (brew/apt)
 - [ ] Error path: Adapter in database.yml is postgres, not sqlite3 → exit 0 with "skipping, not a SQLite project"
+- [ ] Error path: Target path exists but is not a git worktree (e.g., random dir) → `git -C <path> rev-parse --is-inside-work-tree` check fails → exit 1 with "not a git worktree" message **(F7)**
 - [ ] Edge case: DB exists but no `-wal` / `-shm` sidecars (checkpointed cleanly, or not WAL mode) → copies just the main file, no error
+- [ ] Edge case: Target worktree's `storage/development.sqlite3` already exists → existing file renamed to `development.sqlite3.bak` before overwrite; summary lists the backup path **(F4)**
+- [ ] Edge case: Source DB locked by running `rails server` — `PRAGMA wal_checkpoint(TRUNCATE)` returns `SQLITE_BUSY` → script prints warning "DB locked, copy may include uncommitted WAL; consider stopping rails server", continues with copy. Document in skill's "Red Flags" that running server during copy is discouraged. **(F8)**
 
 **Verification:**
 ```bash
@@ -175,6 +182,7 @@ diff main/storage/development.sqlite3 /tmp/fake-worktree/storage/development.sql
 3. Update the Quick Reference table to include a row for "Rails + SQLite project" → "Delegate to using-sqlite-worktrees".
 4. Update the "Integration" section at the bottom — add `using-sqlite-worktrees` under "Pairs with".
 5. Keep all existing behavior intact for non-SQLite projects.
+6. **Failure contract (F5):** If the delegated `using-sqlite-worktrees` script exits non-zero, `using-git-worktrees` MUST (a) print the captured stderr, (b) skip `bin/rails db:test:prepare` (because the dev DB state is unknown — proceeding might mask the underlying issue), (c) skip the baseline test run, and (d) report the worktree as "created but DB setup incomplete — investigate sqlite-worktrees output before continuing." If the script exits 0, continue normally to `db:test:prepare`. Encode this contract explicitly in the SKILL.md step so future readers don't guess.
 
 **Patterns:**
 - Follow the existing Step 3 auto-detection style (`if [ -f X ]; then ...`)
@@ -185,6 +193,7 @@ diff main/storage/development.sqlite3 /tmp/fake-worktree/storage/development.sql
 - [ ] Non-trigger: Rails+Postgres project → delegation check fails on grep, flow continues directly to `db:test:prepare`
 - [ ] Non-trigger: Non-Rails project (no Gemfile) → delegation check skipped entirely
 - [ ] Edge case: Rails+SQLite project with no dev DB yet (fresh checkout, never migrated) → sqlite-worktrees skill runs, reports "no DBs to copy", flow continues without error
+- [ ] Failure contract: sqlite-worktrees script exits 1 → using-git-worktrees prints stderr, skips `db:test:prepare` and baseline tests, reports worktree as "created but DB setup incomplete" **(F5)**
 
 **Verification:** Read the updated `using-git-worktrees/SKILL.md` end-to-end as a fresh agent; confirm the delegation trigger, condition, and ordering are unambiguous and that the flow is reversible (non-SQLite path is untouched).
 
@@ -200,12 +209,16 @@ diff main/storage/development.sqlite3 /tmp/fake-worktree/storage/development.sql
 
 **Dependencies:** Units 1–3 (the skill must exist before being listed)
 
-**Files:**
-- `.claude-plugin/plugin.json` — verify no skill enumeration (skills are auto-discovered by directory scan); if enumeration exists, add the skill
-- `.claude-plugin/marketplace.json` — same check; add if enumeration exists
-- `.cursor-plugin/plugin.json` — same check; add if enumeration exists
+**Files (guaranteed vs. conditional — F1):**
+
+*Guaranteed edits:*
 - `CHANGELOG.md` — add entry under next unreleased version
-- `README.md` — add one-line mention in the skills list if such a list exists (verify during implementation)
+
+*Conditional edits (edit only if inspection confirms enumeration exists):*
+- `.claude-plugin/plugin.json` — inspect first; skills are likely auto-discovered by directory scan
+- `.claude-plugin/marketplace.json` — inspect first
+- `.cursor-plugin/plugin.json` — inspect first
+- `README.md` — inspect first; edit only if it lists skills individually
 
 **Approach:**
 1. First, inspect each manifest: if skills are directory-scanned (most likely), no manifest changes needed. If explicitly listed, add the new skill entry.
@@ -228,34 +241,35 @@ diff main/storage/development.sqlite3 /tmp/fake-worktree/storage/development.sql
 
 ---
 
-### Unit 5: Baseline pressure test + refactor
+### Unit 5: Smoke test on a real Rails project
 
-**Goal:** Follow the `writing-skills` TDD discipline — confirm an agent without this skill fails to handle SQLite worktree copy correctly, then confirm with the skill present the agent complies.
+**Goal:** Confirm the end-to-end flow works on a real Rails+SQLite project, with data preserved across the worktree. Scope trimmed from full TDD cycle (F2) because this skill is invoked programmatically by `using-git-worktrees`, not by user-prompt judgment — rationalization risk is low.
 
-**Requirements trace:** R10
+**Requirements trace:** R10 (scope adjusted)
 
 **Dependencies:** Units 1–4
 
-**Files:** No code changes; captures a test log in `docs/plans/using-sqlite-worktrees-baseline.md` (optional, for review).
+**Files:** No code changes; optional short log at `docs/plans/using-sqlite-worktrees-smoke-test.md`.
 
 **Approach:**
-1. **RED:** Dispatch a subagent on a Rails+SQLite fixture project (or postcraftstudio clone) with prompt: *"Create a git worktree for this project and make sure I can immediately run `bin/rails console` against my existing dev data there."* Without the skill, record what the agent does — likely: creates worktree, runs migrations from scratch, misses the checkpoint step, or naive-`cp`s files causing WAL corruption.
-2. **GREEN:** Repeat with the skill installed. Confirm the agent invokes `using-git-worktrees` → auto-delegates to `using-sqlite-worktrees` → copies DBs correctly → dev data is queryable in the worktree.
-3. **REFACTOR:** If the agent rationalizes past the skill ("I'll just run migrations, faster than copying"), strengthen the SKILL.md language — add a Red Flags entry forbidding that rationalization.
+1. On a Rails+SQLite project (postcraftstudio or equivalent), invoke `using-git-worktrees` via Claude.
+2. Verify delegation fires: `using-sqlite-worktrees` runs after `bundle install` and before `db:test:prepare`.
+3. In the new worktree, run `bin/rails runner "puts SomeModel.count"` — count must match main.
+4. Run one of the P1-adjacent scenarios manually to confirm the fix works: re-invoke the skill against the same worktree, verify the `.bak` backup appears as specified in F4.
 
 **Patterns:**
-- Use `dispatching-parallel-agents` skill for subagent pressure tests
-- Document exact rationalizations found in RED — they're the evidence shaping GREEN
+- One real project beats many synthetic fixtures for smoke testing
+- Capture output verbatim; if anything surprises you, fix it in the SKILL.md before shipping
 
 **Test scenarios:**
-- [ ] Happy path: Agent-with-skill copies 5 Solid* DBs cleanly; `bin/rails console` works
-- [ ] Rationalization path: Agent tries to skip copy in favor of re-migration → SKILL.md forbids; if not, add Red Flag
+- [ ] Happy path: Multi-DB (Solid*) Rails app → all 5 dev DBs present in worktree, record counts match
+- [ ] Overwrite path: Re-invoke against same worktree → `.bak` backup files appear as specified
 - [ ] Edge case: Fresh Rails project with no dev data → skill reports "nothing to copy", flow continues
 
-**Verification:** Two subagent transcripts side-by-side: one without skill (fails or degrades), one with skill (succeeds). Written up in the baseline doc for the PR reviewer.
+**Verification:** Smoke test run succeeds end-to-end without manual intervention; `bin/rails runner` in worktree queries real data.
 
 **Planning-time unknowns:**
-- Which Rails fixture to use for the test? **Resolve in implementation** — either postcraftstudio itself or a minimal Rails 8 scaffold.
+- Which Rails fixture? **Resolve in implementation** — postcraftstudio is the known-good target.
 
 ---
 
