@@ -1,5 +1,5 @@
 ---
-name: superpowers-ruby:handoff
+name: superpowers-ruby-handoff
 description: Use when capturing session state before switching context, ending a session, or manually preserving progress — creates a structured handoff document in docs/handoffs/ so a future session can resume seamlessly
 ---
 

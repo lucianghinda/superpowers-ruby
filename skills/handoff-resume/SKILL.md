@@ -1,5 +1,5 @@
 ---
-name: superpowers-ruby:handoff-resume
+name: superpowers-ruby-handoff-resume
 description: Use when starting a new session and wanting to continue from a previous handoff — reads the latest unrestored handoff document and restores session context
 ---
 

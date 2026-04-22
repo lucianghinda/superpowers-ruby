@@ -1,5 +1,5 @@
 ---
-name: superpowers-ruby:handoff-list
+name: superpowers-ruby-handoff-list
 description: Use when viewing available handoff documents — lists active and archived handoffs with their status, date, topic, and branch
 ---
 
