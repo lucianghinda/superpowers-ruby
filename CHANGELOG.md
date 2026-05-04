@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [6.4.0] - 2026-05-04
+
 ### Added
 
 - **using-sqlite-worktrees skill**: Copies Rails development SQLite databases (including Rails 8 Solid Queue/Cache/Cable multi-DB layouts) into a new git worktree's `storage/` directory. Handles WAL journal mode via `PRAGMA wal_checkpoint(TRUNCATE)` before copy and includes `-wal`/`-shm` sidecar files. Backs up existing files as `*.bak` before overwrite. Ruby helper script ships inside the skill folder, invoked via `${CLAUDE_PLUGIN_ROOT}`.
