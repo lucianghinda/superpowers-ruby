@@ -1,5 +1,14 @@
 # Superpowers Release Notes
 
+## v6.5.0 (2026-05-06)
+
+### Oracle Escalation
+
+- **consulting-an-oracle** — new skill for packaging a stalled in-session investigation into a self-contained oracle prompt at `tmp/oracle/<date>-<slug>.md`, ready to feed to a stronger one-shot model (GPT-5 Pro, Opus, Gemini Pro). Auto-detects Ruby/Rails project shape, pulls the verbatim failure, reconstructs hypothesis/action/outcome attempts from session history, walks one hop from the failing file (≤8 files / ≤2000 lines), and aggressively redacts secrets *before* writing the file (in-memory redaction, not post-write recovery).
+- **File-only by design** — the skill produces an artifact and prints a suggested invocation; it does not call any model itself. This separation keeps the skill model-agnostic, re-runnable later, and decoupled from credentials/CLI/cost decisions that belong to the user.
+- **Ruby/Rails-specific suspect list** — every oracle prompt includes the implicit-context items an external model cannot infer: Zeitwerk autoloading mode, frozen string literals, Puma thread-safety setup, initializer order, recent Gemfile.lock drift, monkey patches, dev/test/prod environment differences, sync vs job code paths, schema vs migrations.
+- **Pressure tests + academic test** — ships with three pressure scenarios (premature escalation, file-only-rule under explicit user authorization, secret redaction under escalating user insistence) and an 8-question academic comprehension test, following the `writing-skills` RED-GREEN-REFACTOR pattern.
+
 ## v6.4.0 (2026-05-04)
 
 ### SQLite Worktree Support

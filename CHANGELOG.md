@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [6.5.0] - 2026-05-06
+
+### Added
+
+- **consulting-an-oracle skill**: Packages a stalled in-session investigation into a self-contained oracle prompt at `tmp/oracle/<date>-<slug>.md` for a stronger one-shot model (GPT-5 Pro, Opus, Gemini Pro) to answer cold. Auto-detects Ruby/Rails project shape (Ruby version, framework, DB, test framework, jobs, asset pipeline, type tooling), pulls verbatim failure context and reconstructs hypothesis/action/outcome attempts from session history, walks one hop from the failing file (≤8 files / ≤2000 lines), and aggressively redacts secrets before write. The skill produces a file only — it does not call any model — keeping it model-agnostic and re-runnable. Includes a Ruby/Rails-specific suspect list (Zeitwerk autoloading, frozen string literals, thread safety, initializer order, gem version drift, monkey patches, environment differences) covering implicit context that an oracle cannot infer. Ships with three pressure tests and an academic comprehension test.
+
 ## [6.4.0] - 2026-05-04
 
 ### Added
