@@ -105,6 +105,23 @@ Auto-detect and run appropriate setup:
 ```bash
 # Ruby on Rails (primary)
 if [ -f Gemfile ]; then bundle install; fi
+
+# Rails + SQLite: populate development databases in the worktree.
+# Delegates to the using-sqlite-worktrees skill. The helper reads database.yml
+# from the MAIN working tree (where populated DBs live), so we cd back to main
+# before invoking it. See failure contract below.
+if [ -f Gemfile ] && [ -f config/database.yml ] && grep -q "adapter: sqlite3" config/database.yml; then
+  WORKTREE_PATH="$(pwd)"
+  MAIN_WORKTREE="$(git worktree list --porcelain | awk '/^worktree/ {print substr($0,10); exit}')"
+  (cd "$MAIN_WORKTREE" && ruby "${CLAUDE_PLUGIN_ROOT}/skills/using-sqlite-worktrees/scripts/create_sqlite_worktree.rb" "$WORKTREE_PATH")
+  SQLITE_EXIT=$?
+  if [ $SQLITE_EXIT -ne 0 ]; then
+    echo "SQLite worktree setup failed — skipping db:test:prepare and baseline tests."
+    echo "Investigate the output above before continuing."
+    exit $SQLITE_EXIT
+  fi
+fi
+
 if [ -f Gemfile ] && [ -f config/database.yml ]; then bin/rails db:test:prepare; fi
 
 # Node.js
@@ -159,6 +176,8 @@ Ready to implement <feature-name>
 | Directory not ignored | Add to .gitignore + commit |
 | Tests fail during baseline | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
+| Rails + SQLite project | Delegate to `using-sqlite-worktrees` before `db:test:prepare` |
+| `using-sqlite-worktrees` fails | Halt setup, skip tests, report "DB setup incomplete" |
 
 ## Common Mistakes
 
@@ -224,3 +243,4 @@ Ready to implement auth feature
 
 **Pairs with:**
 - **finishing-a-development-branch** - REQUIRED for cleanup after work complete
+- **using-sqlite-worktrees** - REQUIRED delegation when Rails + SQLite detected, after `bundle install`, before `db:test:prepare`

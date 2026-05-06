@@ -1,5 +1,12 @@
 # Superpowers Release Notes
 
+## v6.4.0 (2026-05-04)
+
+### SQLite Worktree Support
+
+- **using-sqlite-worktrees** — new skill that copies Rails development SQLite databases (including Rails 8 Solid Queue/Cache/Cable multi-DB layouts) into a new git worktree's `storage/` directory. Handles WAL journal mode via `PRAGMA wal_checkpoint(TRUNCATE)` before copy and includes `-wal`/`-shm` sidecar files. Backs up existing files as `*.bak` before overwrite. Ruby helper script ships inside the skill folder, invoked via `${CLAUDE_PLUGIN_ROOT}`.
+- **using-git-worktrees integration** — auto-delegates to `using-sqlite-worktrees` when a Rails project uses SQLite. Delegation runs after `bundle install` and before `bin/rails db:test:prepare`. If the delegated script fails, `using-git-worktrees` halts setup and reports "DB setup incomplete" rather than silently continuing.
+
 ## v6.3.0 (2026-04-14)
 
 ### Session Continuity
