@@ -1,5 +1,5 @@
 ---
-name: superpowers-ruby:consulting-an-oracle
+name: consulting-an-oracle
 description: Use when stuck after multiple debug attempts and want to escalate to a stronger one-shot model (GPT-5 Pro, Opus, Gemini Pro) — packages a self-contained "oracle prompt" with Ruby/Rails project briefing, verbatim error, what-was-tried, constraints, and just-enough attached files. Triggers include "ask the oracle", "write a letter to GPT-5", "I'm stuck, draft a prompt for another model", "/tmp/letter.md".
 ---
 
