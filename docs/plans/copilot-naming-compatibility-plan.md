@@ -195,8 +195,8 @@ Cycle check: linear, acyclic. Each unit consumes the previous unit's verificatio
 - [ ] No file outside `skills/*/SKILL.md` has changed.
 
 **Verification (concrete):**
-- `grep -c "^name: superpowers-ruby\." skills/*/SKILL.md | grep -v ":1$"` → empty (every file has exactly one matching line).
-- `grep -L "^name: superpowers-ruby\." skills/*/SKILL.md` → empty (no file is missing the prefix).
+- `grep -L "^name: superpowers-ruby\." skills/*/SKILL.md` → empty (no SKILL.md is missing the prefix).
+- `grep "^name:" skills/*/SKILL.md | grep -v "superpowers-ruby\."` → empty (no SKILL.md has any other form of `name:`).
 
 **Quality bar exception:** This unit touches 28 files, exceeding the >8-file guideline. Rationale: 28 mechanically identical single-line edits, all in the same trivially-reviewable form. The user explicitly chose "one commit per logical unit", and "uniformity refactor" is the logical unit. Splitting into categorical sub-units would create artificial review boundaries with no information value (each sub-commit would still be the same one-line pattern). Accepted with explicit acknowledgment.
 
@@ -305,3 +305,17 @@ Cycle check: linear, acyclic. Each unit consumes the previous unit's verificatio
 ## Hotfix-Revert Strategy
 
 If Unit 3 lands and a regression is detected on Cursor or OpenCode post-merge: revert Unit 3's commit cleanly (it touches only 28 SKILL.md files). The 6 originally-broken skills (Units 1+2) remain fixed for Copilot, and the 28 working skills return to their previous bare-name form. This satisfies R2 (the original Copilot bug) at the cost of R1 (uniformity).
+
+## Regression Detection (Post-Merge)
+
+Because Cursor and OpenCode are **best-effort** (the user has not pre-tested on them), the release-notes entry in Unit 5 must include a "Please report regressions" line that names Cursor and OpenCode explicitly. Path: when a regression is reported, apply the Hotfix-Revert Strategy on Unit 3 and ship a 6.6.1.
+
+## Phase 5 Validation Summary
+
+Reviews applied: combined CEO + Engineering. Design Review skipped (no UI surface). Findings:
+
+- **F1 (P0, dismissed):** Audited `agents/code-reviewer.md` and `commands/*.md` for the same colon-in-name issue. `code-reviewer` has bare `name: code-reviewer` (Copilot-safe). Commands have no `name:` field. No expansion of scope needed.
+- **F2 (P1, autofixed):** Replaced fragile `grep -c | grep -v ":1$"` verification with `grep -L` form (Unit 3).
+- **F3 (P1, autofixed):** Added Regression Detection section pointing at Cursor/OpenCode and naming the 6.6.1 hotfix path.
+
+No P0/P1 unresolved. Gate 5 → 6 satisfied.
