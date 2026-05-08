@@ -221,9 +221,16 @@ Skills live directly in this repository. To contribute:
 1. Fork the repository
 2. Create a branch for your skill
 3. Follow the `writing-skills` skill for creating and testing new skills
-4. Submit a PR
+4. If your change touches plugin manifests, skill frontmatter, or any
+   cross-platform contract, smoke-test the branch on each affected platform
+   before opening the PR — see
+   [`docs/testing-plugin-installs.md`](docs/testing-plugin-installs.md)
+   for per-platform install/verify/restore commands.
+5. Submit a PR
 
-See `skills/writing-skills/SKILL.md` for the complete guide.
+See `skills/writing-skills/SKILL.md` for the complete guide on writing
+skills, and [`docs/testing.md`](docs/testing.md) for running the
+integration test suite.
 
 ## Updating
 
