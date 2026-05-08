@@ -10,6 +10,16 @@
 - **No migration needed** — slash-command invocation from the user's perspective is unchanged. `/superpowers-ruby:handoff`, `/superpowers-ruby:compound`, etc. work exactly as before.
 - **Cursor remains best-effort** — this release was empirically verified on Copilot CLI from a local-branch install during development. Claude Code, OpenCode, Codex are covered by their existing test paths or live-symlink discovery. Cursor was not pre-tested; please report any regressions.
 
+### Codex Plugin Support
+
+- **`.codex-plugin/plugin.json` manifest** — superpowers-ruby is now a proper Codex plugin. Codex 6.6.0+ users can install via the native plugin system instead of the legacy clone-and-symlink dance:
+  ```bash
+  codex plugin marketplace add lucianghinda/superpowers-ruby
+  codex plugin install superpowers-ruby@superpowers-ruby
+  ```
+- **Legacy symlink install still supported** — users already on the `~/.agents/skills/superpowers-ruby` → clone symlink path can stay where they are. The new plugin install is recommended for new setups (version pinning, `codex plugin upgrade`, `codex plugin uninstall` semantics) but not required. `.codex/INSTALL.md` documents both paths and the optional migration step.
+- **Skills-only manifest in this release** — the Codex plugin currently exposes the skills directory only. Codex hooks integration (matching the existing Claude Code/Cursor/Copilot session-start context injection) is intentionally deferred — Codex's hook schema is not publicly documented at the time of this release, so adding a `hooks/hooks.json` entry without verified format risks shipping a broken hook config. Hooks parity for Codex is tracked as a follow-up.
+
 ## v6.5.0 (2026-05-06)
 
 ### Oracle Escalation

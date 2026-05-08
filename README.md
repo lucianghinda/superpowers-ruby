@@ -82,11 +82,17 @@ cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpo
 
 ### Codex
 
-Tell Codex:
+Codex 6.6.0+ ships with a Codex plugin manifest, so it installs via Codex's
+native plugin system:
 
+```bash
+codex plugin marketplace add lucianghinda/superpowers-ruby
+codex plugin install superpowers-ruby@superpowers-ruby
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/superpowers-ruby/refs/heads/main/.codex/INSTALL.md
-```
+
+A legacy symlink install (clone + `ln -s …skills ~/.agents/skills/`) is also
+supported for users already on it. See [`.codex/INSTALL.md`](.codex/INSTALL.md)
+for both paths and the migration guide.
 
 **Detailed docs:** [docs/README.codex.md](docs/README.codex.md)
 
