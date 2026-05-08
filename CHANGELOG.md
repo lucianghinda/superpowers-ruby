@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [6.6.0] - 2026-05-08
+
+### Fixed
+
+- **Copilot CLI compatibility**: The 6 skills that previously declared `name: superpowers-ruby:<slug>` in their frontmatter (`compound`, `compound-refresh`, `consulting-an-oracle`, `handoff`, `handoff-list`, `handoff-resume`) now use bare names (`name: <slug>`), matching the other 28 skills. Copilot CLI's name validator rejects `:` in the `name:` field with `Skill name must contain only letters, numbers, hyphens, underscores, dots, and spaces`, so those 6 skills failed to load. Bare names sidestep this because every loader auto-prepends `superpowers-ruby:` on display — any explicit prefix would double-prefix (`name: superpowers-ruby.handoff` would render as `/superpowers-ruby:superpowers-ruby.handoff` on Copilot). Supersedes [PR #12](https://github.com/lucianghinda/superpowers-ruby/pull/12), which proposed the same fix with hyphens and would have hit the same double-prefix issue.
+
+### Changed
+
+- **Skill cross-references normalized**: A handful of skill bodies (`compound`, `compound-refresh`, `executing-plans`, `subagent-driven-development`, `systematic-debugging`, `writing-plans`, `writing-skills`, and others) referenced sibling skills as `superpowers:<slug>` (the OpenCode auto-prefix form, since the npm package is named `superpowers`). These references were normalized to `superpowers-ruby:<slug>` to match the catalog in `using-superpowers/SKILL.md` and the dominant convention used elsewhere in the repo. Picks up where the v6.0.0 namespace rename left off.
+
+### Migration Guide
+
+No action required. Slash-command invocation from the user's perspective is unchanged — `/superpowers-ruby:handoff`, `/superpowers-ruby:compound`, etc. continue to work exactly as before. The fix is internal to skill frontmatter.
+
 ## [6.5.0] - 2026-05-06
 
 ### Added

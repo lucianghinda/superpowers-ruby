@@ -1,5 +1,15 @@
 # Superpowers Release Notes
 
+## v6.6.0 (2026-05-08)
+
+### Copilot CLI Compatibility
+
+- **6 skills now load on Copilot CLI** — `compound`, `compound-refresh`, `consulting-an-oracle`, `handoff`, `handoff-list`, and `handoff-resume` previously declared `name: superpowers-ruby:<slug>` in their SKILL.md frontmatter. Copilot CLI's name validator rejects the `:` character (`Skill name must contain only letters, numbers, hyphens, underscores, dots, and spaces`), so those 6 skills failed to install. They now use bare names (`name: <slug>`), matching the other 28.
+- **Why bare names, not dot- or hyphen-prefixed** — Copilot CLI auto-prepends `superpowers-ruby:` when displaying any skill name. Any explicit prefix in the `name:` field therefore double-prefixes the slash command. `name: superpowers-ruby.handoff` would render as `/superpowers-ruby:superpowers-ruby.handoff`. With bare `name: handoff`, Copilot renders the clean `/superpowers-ruby:handoff` that Claude Code, Cursor, OpenCode, and Codex also produce. PR [#12](https://github.com/lucianghinda/superpowers-ruby/pull/12) flagged the original bug and proposed colon→hyphen, which would have hit the same double-prefix issue; this release supersedes it.
+- **Skill cross-references normalized** — a handful of skill bodies (`compound`, `compound-refresh`, `executing-plans`, `subagent-driven-development`, `systematic-debugging`, `writing-plans`, `writing-skills`, and others) used `superpowers:<slug>` (OpenCode auto-prefix form) when cross-referencing sibling skills. These were normalized to `superpowers-ruby:<slug>` to match the catalog and the dominant convention. Continues the v6.0.0 namespace rename for the few files that were missed.
+- **No migration needed** — slash-command invocation from the user's perspective is unchanged. `/superpowers-ruby:handoff`, `/superpowers-ruby:compound`, etc. work exactly as before.
+- **Cursor remains best-effort** — this release was empirically verified on Copilot CLI from a local-branch install during development. Claude Code, OpenCode, Codex are covered by their existing test paths or live-symlink discovery. Cursor was not pre-tested; please report any regressions.
+
 ## v6.5.0 (2026-05-06)
 
 ### Oracle Escalation
