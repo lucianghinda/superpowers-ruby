@@ -107,7 +107,7 @@ If no candidate docs are found, report:
 
 ```text
 No candidate docs found in docs/solutions/.
-Run `superpowers:compound` after solving problems to start building your knowledge base.
+Run `superpowers-ruby:compound` after solving problems to start building your knowledge base.
 ```
 
 ## Phase 0: Assess and Route
@@ -169,8 +169,8 @@ Match investigation depth to the learning's specificity — a learning referenci
 
 The critical distinction is whether the drift is **cosmetic** (references moved but the solution is the same) or **substantive** (the solution itself changed):
 
-- **Update territory** — file paths moved, classes renamed, links broke, metadata drifted, but the core recommended approach is still how the code works. `superpowers:compound-refresh` fixes these directly.
-- **Replace territory** — the recommended solution conflicts with current code, the architectural approach changed, or the pattern is no longer the preferred way. This means a new learning needs to be written. A replacement subagent writes the successor following `superpowers:compound`'s document format (frontmatter, problem, root cause, solution, prevention), using the investigation evidence already gathered. The orchestrator does not rewrite learnings inline — it delegates to a subagent for context isolation.
+- **Update territory** — file paths moved, classes renamed, links broke, metadata drifted, but the core recommended approach is still how the code works. `superpowers-ruby:compound-refresh` fixes these directly.
+- **Replace territory** — the recommended solution conflicts with current code, the architectural approach changed, or the pattern is no longer the preferred way. This means a new learning needs to be written. A replacement subagent writes the successor following `superpowers-ruby:compound`'s document format (frontmatter, problem, root cause, solution, prevention), using the investigation evidence already gathered. The orchestrator does not rewrite learnings inline — it delegates to a subagent for context isolation.
 
 **The boundary:** if you find yourself rewriting the solution section or changing what the learning recommends, stop — that is Replace, not Update.
 
@@ -247,7 +247,7 @@ By the time you identify a Replace candidate, Phase 1 investigation has already 
 - **Insufficient evidence** — the drift is so fundamental that you cannot confidently document the current approach. The entire subsystem was replaced, or the new architecture is too complex to understand from a file scan alone. → Mark as stale in place:
    - Add `status: stale`, `stale_reason: [what you found]`, `stale_date: YYYY-MM-DD` to the frontmatter
    - Report what evidence you found and what is missing
-   - Recommend the user run `superpowers:compound` after their next encounter with that area, when they have fresh problem-solving context
+   - Recommend the user run `superpowers-ruby:compound` after their next encounter with that area, when they have fresh problem-solving context
 
 ### Archive
 
@@ -313,7 +313,7 @@ Most Updates should be applied directly without asking. Only ask the user when:
 
 - The right action is genuinely ambiguous (Update vs Replace vs Archive)
 - You are about to Archive a document **and** the evidence is not unambiguous (see auto-archive criteria in Phase 2). When auto-archive criteria are met, proceed without asking.
-- You are about to create a successor via `superpowers:compound`
+- You are about to create a successor via `superpowers-ruby:compound`
 
 Do **not** ask questions about whether code changes were intentional, whether the user wants to fix bugs in the code, or other concerns outside doc maintenance. Stay in your lane — doc accuracy.
 
@@ -417,7 +417,7 @@ Process Replace candidates **one at a time, sequentially**. Each replacement is 
    - The old learning's full content
    - A summary of the investigation evidence (what changed, what the current code does, why the old guidance is misleading)
    - The target path and category (same category as the old learning unless the category itself changed)
-2. The subagent writes the new learning following `superpowers:compound`'s document format: YAML frontmatter (title, category, date, module, component, tags), problem description, root cause, current solution with code examples, and prevention tips. It should use dedicated file search and read tools if it needs additional context beyond what was passed.
+2. The subagent writes the new learning following `superpowers-ruby:compound`'s document format: YAML frontmatter (title, category, date, module, component, tags), problem description, root cause, current solution with code examples, and prevention tips. It should use dedicated file search and read tools if it needs additional context beyond what was passed.
 3. After the subagent completes, the orchestrator:
    - Adds `superseded_by: [new learning path]` to the old learning's frontmatter
    - Moves the old learning to `docs/solutions/_archived/`
@@ -427,7 +427,7 @@ Process Replace candidates **one at a time, sequentially**. Each replacement is 
 1. Mark the learning as stale in place:
    - Add to frontmatter: `status: stale`, `stale_reason: [what you found]`, `stale_date: YYYY-MM-DD`
 2. Report what evidence was found and what is missing
-3. Recommend the user run `superpowers:compound` after their next encounter with that area
+3. Recommend the user run `superpowers-ruby:compound` after their next encounter with that area
 
 ### Archive Flow
 
@@ -543,7 +543,7 @@ Write a descriptive commit message that:
 
 ## Relationship to :compound
 
-- `superpowers:compound` captures a newly solved, verified problem
-- `superpowers:compound-refresh` maintains older learnings as the codebase evolves
+- `superpowers-ruby:compound` captures a newly solved, verified problem
+- `superpowers-ruby:compound-refresh` maintains older learnings as the codebase evolves
 
-Use **Replace** only when the refresh process has enough real evidence to write a trustworthy successor. When evidence is insufficient, mark as stale and recommend `superpowers:compound` for when the user next encounters that problem area.
+Use **Replace** only when the refresh process has enough real evidence to write a trustworthy successor. When evidence is insufficient, mark as stale and recommend `superpowers-ruby:compound` for when the user next encounters that problem area.

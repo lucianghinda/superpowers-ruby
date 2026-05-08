@@ -31,8 +31,8 @@ Phase 1 subagents return TEXT DATA to the orchestrator. They must NOT write file
 ## Quick Reference
 
 ```bash
-/superpowers:compound                    # Document the most recent fix
-/superpowers:compound [brief context]    # Provide additional context hint
+/superpowers-ruby:compound                    # Document the most recent fix
+/superpowers-ruby:compound [brief context]    # Provide additional context hint
 /compound --compact          # Single-pass mode for context-constrained sessions
 ```
 
@@ -73,16 +73,16 @@ WAIT for all Phase 1 subagents to complete, then:
 
 ### Phase 2.5: Selective Refresh
 
-After writing, check whether older docs should be refreshed. `superpowers:compound-refresh` is **not** a default follow-up — invoke it selectively:
+After writing, check whether older docs should be refreshed. `superpowers-ruby:compound-refresh` is **not** a default follow-up — invoke it selectively:
 
 | Condition | Action |
 |-----------|--------|
-| New fix contradicts a prior doc's recommendation | Invoke `superpowers:compound-refresh [doc-name]` |
+| New fix contradicts a prior doc's recommendation | Invoke `superpowers-ruby:compound-refresh [doc-name]` |
 | New fix supersedes an older solution | Invoke with narrowest useful scope |
 | Multiple related candidates in same area | Ask user whether to run targeted refresh |
 | No related docs found, or docs still consistent | Skip |
 
-Never invoke `superpowers:compound-refresh` without a scope argument.
+Never invoke `superpowers-ruby:compound-refresh` without a scope argument.
 
 ### Phase 3: Optional Enhancement
 
