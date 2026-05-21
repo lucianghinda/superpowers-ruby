@@ -82,7 +82,7 @@ SESSION_CONTEXT="<handoff-restored>\nThe following handoff document was captured
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
   printf '{\n  "additional_context": "%s"\n}\n' "$SESSION_CONTEXT"
 elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
-  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "PostCompact",\n    "additionalContext": "%s"\n  }\n}\n' "$SESSION_CONTEXT"
+  printf '{\n  "systemMessage": "%s"\n}\n' "$SESSION_CONTEXT"
 else
   printf '{\n  "additionalContext": "%s"\n}\n' "$SESSION_CONTEXT"
 fi
