@@ -11,7 +11,7 @@ remains supported for users already using it.
 
 ## Option 1 — Plugin install (recommended)
 
-Codex 6.6.0+ ships with a `.codex-plugin/plugin.json` manifest, so it can be
+superpowers-ruby 7.0.0+ ships with a `.codex-plugin/plugin.json` manifest, so it can be
 installed via Codex's native plugin system.
 
 ```bash

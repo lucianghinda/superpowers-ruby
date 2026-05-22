@@ -1,6 +1,6 @@
 # Superpowers Release Notes
 
-## v6.6.0 (2026-05-08)
+## v7.0.0 (2026-05-22)
 
 ### Copilot CLI Compatibility
 
@@ -12,7 +12,7 @@
 
 ### Codex Plugin Support
 
-- **`.codex-plugin/plugin.json` manifest** — superpowers-ruby is now a proper Codex plugin. Codex 6.6.0+ users can install via the native plugin system instead of the legacy clone-and-symlink dance:
+- **`.codex-plugin/plugin.json` manifest** — superpowers-ruby is now a proper Codex plugin. superpowers-ruby 7.0.0+ users can install via the native plugin system instead of the legacy clone-and-symlink dance:
   ```bash
   codex plugin marketplace add lucianghinda/superpowers-ruby
   codex plugin install superpowers-ruby@superpowers-ruby

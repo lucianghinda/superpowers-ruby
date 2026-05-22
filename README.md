@@ -64,7 +64,7 @@ Quick reference:
 | Platform | Install model | Install command |
 |---|---|---|
 | **Claude Code** | Native plugin | `/plugin marketplace add lucianghinda/superpowers-ruby` then `/plugin install superpowers-ruby@superpowers-ruby` |
-| **Codex** (6.6.0+) | Native plugin | `codex plugin marketplace add lucianghinda/superpowers-ruby` then `codex plugin install superpowers-ruby@superpowers-ruby` |
+| **Codex** (7.0.0+) | Native plugin | `codex plugin marketplace add lucianghinda/superpowers-ruby` then `codex plugin install superpowers-ruby@superpowers-ruby` |
 | **GitHub Copilot CLI** | Native plugin | `copilot plugin marketplace add lucianghinda/superpowers-ruby` then `copilot plugin install superpowers-ruby@superpowers-ruby` |
 | **Cursor** | Local clone (no marketplace yet) | `cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpowers-ruby` |
 | **OpenCode** | Agent-driven setup | See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) |
@@ -100,7 +100,7 @@ cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpo
 
 ### Codex
 
-Codex 6.6.0+ ships with a Codex plugin manifest, so it installs via Codex's
+superpowers-ruby 7.0.0+ ships with a Codex plugin manifest, so it installs via Codex's
 native plugin system:
 
 ```bash

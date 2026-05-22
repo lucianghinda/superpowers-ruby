@@ -141,7 +141,7 @@ rm -rf /tmp/superpowers-ruby-test
 
 ## 3. Codex
 
-Codex 6.6.0+ supports a native plugin install. The legacy symlink-based
+superpowers-ruby 7.0.0+ supports a native Codex plugin install. The legacy symlink-based
 install (`~/.agents/skills/superpowers-ruby` → clone) remains supported.
 
 ### Test from local working tree (legacy symlink path — simplest)
@@ -284,7 +284,7 @@ Edit `opencode.json` back to the production install (no `#<ref>` suffix):
 ## Cross-platform regression checklist
 
 Use this after testing on each platform to confirm there are no regressions
-from the v6.6.0 bare-name change:
+from the v7.0.0 bare-name change:
 
 - [ ] All 6 originally-broken skills (`compound`, `compound-refresh`,
       `consulting-an-oracle`, `handoff`, `handoff-list`, `handoff-resume`)
@@ -299,7 +299,7 @@ from the v6.6.0 bare-name change:
       unchanged (`/superpowers-ruby:handoff` still works).
 - [ ] Skill cross-references in skill bodies use `superpowers-ruby:<slug>`
       consistently (not legacy `superpowers:<slug>`).
-- [ ] Manifest version (`6.6.0`) is consistent across all 5 versioned
+- [ ] Manifest version (`7.0.0`) is consistent across all 6 versioned
       manifests: `.claude-plugin/plugin.json`,
       `.claude-plugin/marketplace.json`, `.cursor-plugin/plugin.json`,
       `.codex-plugin/plugin.json`, `package.json`, `gemini-extension.json`.
