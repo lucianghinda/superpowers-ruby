@@ -1,12 +1,42 @@
 # Installing Superpowers for Codex
 
-Enable superpowers skills in Codex via native skill discovery. Just clone and symlink.
+Two install paths are supported. Prefer the **plugin install** for new setups
+(version-pinned, official Codex plugin system). The **legacy symlink install**
+remains supported for users already using it.
 
 ## Prerequisites
 
+- Codex CLI with plugin support
 - Git
 
-## Installation
+## Option 1 — Plugin install (recommended)
+
+superpowers-ruby 7.0.0+ ships with a `.codex-plugin/plugin.json` manifest, so it can be
+installed via Codex's native plugin system.
+
+```bash
+codex plugin marketplace add lucianghinda/superpowers-ruby
+codex plugin install superpowers-ruby@superpowers-ruby
+```
+
+Restart Codex (quit and relaunch the CLI). Skills are discovered automatically.
+
+To update later:
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+```
+
+To uninstall:
+
+```bash
+codex plugin uninstall superpowers-ruby
+```
+
+## Option 2 — Legacy symlink install
+
+Use this path if you prefer to keep skills under `~/.agents/skills/` without
+going through Codex's plugin system, or if you're testing a local clone.
 
 1. **Clone the superpowers repository:**
    ```bash
@@ -27,7 +57,7 @@ Enable superpowers skills in Codex via native skill discovery. Just clone and sy
 
 3. **Restart Codex** (quit and relaunch the CLI) to discover the skills.
 
-## Migrating from old bootstrap
+### Migrating from old bootstrap
 
 If you installed superpowers before native skill discovery, you need to:
 
@@ -42,15 +72,7 @@ If you installed superpowers before native skill discovery, you need to:
 
 4. **Restart Codex.**
 
-## Verify
-
-```bash
-ls -la ~/.agents/skills/superpowers-ruby
-```
-
-You should see a symlink (or junction on Windows) pointing to your superpowers-ruby skills directory.
-
-## Updating
+### Updating
 
 ```bash
 cd ~/.codex/superpowers-ruby && git pull
@@ -58,10 +80,36 @@ cd ~/.codex/superpowers-ruby && git pull
 
 Skills update instantly through the symlink.
 
-## Uninstalling
+### Uninstalling
 
 ```bash
 rm ~/.agents/skills/superpowers-ruby
 ```
 
 Optionally delete the clone: `rm -rf ~/.codex/superpowers-ruby`.
+
+## Migrating from symlink to plugin
+
+If you're currently on the legacy symlink install and want to switch to the
+plugin install:
+
+```bash
+# Remove the legacy symlink (keep the clone if you want, but it's no longer used)
+rm ~/.agents/skills/superpowers-ruby
+
+# Install via Codex's plugin system
+codex plugin marketplace add lucianghinda/superpowers-ruby
+codex plugin install superpowers-ruby@superpowers-ruby
+```
+
+Restart Codex to pick up the plugin install.
+
+## Verify
+
+After install, ask Codex to use one of the superpowers-ruby skills (for
+example, "use the brainstorming skill from superpowers-ruby"). The plugin
+install also surfaces in `codex plugin list`:
+
+```bash
+codex plugin list
+```

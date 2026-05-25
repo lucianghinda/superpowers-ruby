@@ -1,6 +1,6 @@
 # Go Fractals CLI - Implementation Plan
 
-Execute this plan using the `superpowers:subagent-driven-development` skill.
+Execute this plan using the `superpowers-ruby:subagent-driven-development` skill.
 
 ## Context
 

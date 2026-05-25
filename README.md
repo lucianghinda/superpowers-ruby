@@ -52,7 +52,25 @@ Thanks!
 
 ## Installation
 
-**Note:** Installation differs by platform. Claude Code or Cursor have built-in plugin marketplaces. Codex and OpenCode require manual setup.
+`superpowers-ruby` ships as a **native plugin** for three platforms — **Codex**,
+**Claude Code**, and **Copilot CLI** — using each platform's plugin marketplace.
+A single repo with three platform-specific manifests
+(`.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and
+`.cursor-plugin/plugin.json`), plus dedicated install paths for OpenCode and
+Gemini CLI.
+
+Quick reference:
+
+| Platform | Install model | Install command |
+|---|---|---|
+| **Claude Code** | Native plugin | `/plugin marketplace add lucianghinda/superpowers-ruby` then `/plugin install superpowers-ruby@superpowers-ruby` |
+| **Codex** (7.0.0+) | Native plugin | `codex plugin marketplace add lucianghinda/superpowers-ruby` then `codex plugin install superpowers-ruby@superpowers-ruby` |
+| **GitHub Copilot CLI** | Native plugin | `copilot plugin marketplace add lucianghinda/superpowers-ruby` then `copilot plugin install superpowers-ruby@superpowers-ruby` |
+| **Cursor** | Local clone (no marketplace yet) | `cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpowers-ruby` |
+| **OpenCode** | Agent-driven setup | See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) |
+| **Gemini CLI** | Extension | `gemini extensions install https://github.com/lucianghinda/superpowers-ruby` |
+
+Detailed instructions per platform follow below.
 
 ### Claude Code — Option 1: Install from GitHub
 
@@ -82,11 +100,17 @@ cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpo
 
 ### Codex
 
-Tell Codex:
+superpowers-ruby 7.0.0+ ships with a Codex plugin manifest, so it installs via Codex's
+native plugin system:
 
+```bash
+codex plugin marketplace add lucianghinda/superpowers-ruby
+codex plugin install superpowers-ruby@superpowers-ruby
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/superpowers-ruby/refs/heads/main/.codex/INSTALL.md
-```
+
+A legacy symlink install (clone + `ln -s …skills ~/.agents/skills/`) is also
+supported for users already on it. See [`.codex/INSTALL.md`](.codex/INSTALL.md)
+for both paths and the migration guide.
 
 **Detailed docs:** [docs/README.codex.md](docs/README.codex.md)
 
@@ -113,11 +137,7 @@ copilot plugin install superpowers-ruby@superpowers-ruby
 gemini extensions install https://github.com/lucianghinda/superpowers-ruby
 ```
 
-To update:
-
-```bash
-gemini extensions update superpowers-ruby
-```
+See the [Updating](#updating) section below for update commands.
 
 ### Verify Installation
 
@@ -201,16 +221,68 @@ Skills live directly in this repository. To contribute:
 1. Fork the repository
 2. Create a branch for your skill
 3. Follow the `writing-skills` skill for creating and testing new skills
-4. Submit a PR
+4. If your change touches plugin manifests, skill frontmatter, or any
+   cross-platform contract, smoke-test the branch on each affected platform
+   before opening the PR — see
+   [`docs/testing-plugin-installs.md`](docs/testing-plugin-installs.md)
+   for per-platform install/verify/restore commands.
+5. Submit a PR
 
-See `skills/writing-skills/SKILL.md` for the complete guide.
+See `skills/writing-skills/SKILL.md` for the complete guide on writing
+skills, and [`docs/testing.md`](docs/testing.md) for running the
+integration test suite.
 
 ## Updating
 
-Skills update automatically when you update the plugin:
+Skills update automatically when you update the plugin. Pick the command for
+the platform you installed on.
+
+### Claude Code
 
 ```bash
 /plugin update superpowers-ruby
+```
+
+### Codex
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+```
+
+If you're on the legacy symlink install (skills under `~/.agents/skills/`),
+update by pulling the clone instead:
+
+```bash
+cd ~/.codex/superpowers-ruby && git pull
+```
+
+See [`.codex/INSTALL.md`](.codex/INSTALL.md) for migrating from symlink to
+plugin.
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin update superpowers-ruby
+```
+
+### Cursor
+
+Pull the latest in the plugin directory:
+
+```bash
+cd ~/.cursor/plugins/local/superpowers-ruby && git pull
+```
+
+### OpenCode
+
+Pull the latest in the install directory and restart OpenCode. See
+[`.opencode/INSTALL.md`](.opencode/INSTALL.md) for the exact path on your
+machine.
+
+### Gemini CLI
+
+```bash
+gemini extensions update superpowers-ruby
 ```
 
 ## License

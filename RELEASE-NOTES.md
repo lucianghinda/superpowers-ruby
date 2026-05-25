@@ -1,5 +1,25 @@
 # Superpowers Release Notes
 
+## v7.0.0 (2026-05-22)
+
+### Copilot CLI Compatibility
+
+- **6 skills now load on Copilot CLI** — `compound`, `compound-refresh`, `consulting-an-oracle`, `handoff`, `handoff-list`, and `handoff-resume` previously declared `name: superpowers-ruby:<slug>` in their SKILL.md frontmatter. Copilot CLI's name validator rejects the `:` character (`Skill name must contain only letters, numbers, hyphens, underscores, dots, and spaces`), so those 6 skills failed to install. They now use bare names (`name: <slug>`), matching the other 28.
+- **Why bare names, not dot- or hyphen-prefixed** — Copilot CLI auto-prepends `superpowers-ruby:` when displaying any skill name. Any explicit prefix in the `name:` field therefore double-prefixes the slash command. `name: superpowers-ruby.handoff` would render as `/superpowers-ruby:superpowers-ruby.handoff`. With bare `name: handoff`, Copilot renders the clean `/superpowers-ruby:handoff` that Claude Code, Cursor, OpenCode, and Codex also produce. PR [#12](https://github.com/lucianghinda/superpowers-ruby/pull/12) flagged the original bug and proposed colon→hyphen, which would have hit the same double-prefix issue; this release supersedes it.
+- **Skill cross-references normalized** — a handful of skill bodies (`compound`, `compound-refresh`, `executing-plans`, `subagent-driven-development`, `systematic-debugging`, `writing-plans`, `writing-skills`, and others) used `superpowers:<slug>` (OpenCode auto-prefix form) when cross-referencing sibling skills. These were normalized to `superpowers-ruby:<slug>` to match the catalog and the dominant convention. Continues the v6.0.0 namespace rename for the few files that were missed.
+- **No migration needed** — slash-command invocation from the user's perspective is unchanged. `/superpowers-ruby:handoff`, `/superpowers-ruby:compound`, etc. work exactly as before.
+- **Cursor remains best-effort** — this release was empirically verified on Copilot CLI from a local-branch install during development. Claude Code, OpenCode, Codex are covered by their existing test paths or live-symlink discovery. Cursor was not pre-tested; please report any regressions.
+
+### Codex Plugin Support
+
+- **`.codex-plugin/plugin.json` manifest** — superpowers-ruby is now a proper Codex plugin. superpowers-ruby 7.0.0+ users can install via the native plugin system instead of the legacy clone-and-symlink dance:
+  ```bash
+  codex plugin marketplace add lucianghinda/superpowers-ruby
+  codex plugin install superpowers-ruby@superpowers-ruby
+  ```
+- **Legacy symlink install still supported** — users already on the `~/.agents/skills/superpowers-ruby` → clone symlink path can stay where they are. The new plugin install is recommended for new setups (version pinning, `codex plugin upgrade`, `codex plugin uninstall` semantics) but not required. `.codex/INSTALL.md` documents both paths and the optional migration step.
+- **Skills-only manifest in this release** — the Codex plugin currently exposes the skills directory only. Codex hooks integration (matching the existing Claude Code/Cursor/Copilot session-start context injection) is intentionally deferred — Codex's hook schema is not publicly documented at the time of this release, so adding a `hooks/hooks.json` entry without verified format risks shipping a broken hook config. Hooks parity for Codex is tracked as a follow-up.
+
 ## v6.5.0 (2026-05-06)
 
 ### Oracle Escalation
