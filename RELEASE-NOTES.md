@@ -1,5 +1,14 @@
 # Superpowers Release Notes
 
+## v7.0.1 (2026-05-27)
+
+### Ruby Interpreter Upgrade
+
+- **ruby-upgrade** — new skill for taking a Bundler/Rails app from Ruby 3.x to Ruby 4.0.x. This is the *interpreter* upgrade; the existing `rails-upgrade` skill handles *framework* version bumps. The skill descriptions are written to de-conflict so the right one activates, and the skill-triggering test confirms a naive "move to Ruby 4.0.5, what breaks?" prompt fires `ruby-upgrade` alone.
+- **Audit before edit** — Phase 2 dispatches a single `Explore` subagent to grep the codebase against a bundled breaking-change inventory and report counts + `file:line` examples. The mechanical toolchain edits (Phase 4) only touch files that actually pinned the old version, never inventing files, and stop on a `bundle update --ruby` resolution failure rather than pushing through.
+- **Verified inventory** — `references/ruby-4-0-changes.md` is checked against the upstream Ruby 4.0.0 release announcement. Highlights: `CGI.parse`/`CGI::Cookie`/`CGI::Session` removed (escape helpers stay in `cgi/escape`), `Net::HTTP` no longer sets an implicit `application/x-www-form-urlencoded` Content-Type, `Set` promoted to a core class with `Set#inspect` now rendering `Set[1, 2, 3]`, `Ractor.yield`/`#take`/`#close_incoming`/`#close_outgoing` removed for `Ractor::Port`, `Kernel#open("|…")` pipe form removed, `Process::Status#&`/`#>>` removed, OpenSSL 4.0.0, and ZJIT (experimental, needs Rust 1.85.0+) vs production-safe YJIT.
+- **Adapted, not copied** — the source was an org-specific command file; this release strips machine-local report paths, a private container registry, a ticket format, GitLab-only CI assumptions, and a non-existent companion skill, and reshapes the command frontmatter (`argument-hint`/`allowed-tools`/`$ARGUMENTS`) into a relevance-triggered skill.
+
 ## v7.0.0 (2026-05-22)
 
 ### Copilot CLI Compatibility

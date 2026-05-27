@@ -29,6 +29,7 @@ SKILLS=(
     "hwc-ux-feedback"
     "rails-guides"
     "rails-upgrade"
+    "ruby-upgrade"
     "receiving-code-review"
     "ruby-commit-message"
     "sandi-metz-rules"

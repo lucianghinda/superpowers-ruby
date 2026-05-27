@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [7.0.1] - 2026-05-27
+
+### Added
+
+- **ruby-upgrade skill**: Upgrades the Ruby *interpreter* version of a Bundler/Rails app, currently targeting the Ruby 3.x → 4.0.x jump. Runs a breaking-change risk audit via a single `Explore` subagent sweep, writes a stakeholder-ready analysis (`docs/ruby-upgrade/<date>/analysis.md`, falling back to `tmp/`), applies mechanical toolchain edits only where the old version was actually pinned (`.ruby-version`, Dockerfile, CI YAML, RuboCop `TargetRubyVersion`, Gemfile `cgi`/demoted-gem pins), then verifies with RuboCop, the test suite, and Sorbet/Tapioca when present. Ships a bundled breaking-change inventory (`references/ruby-4-0-changes.md`) verified against the upstream Ruby 4.0.0 release announcement: CGI session-class removal vs retained `cgi/escape`, `Net::HTTP` implicit Content-Type drop, demoted default gems, `Set` promoted to core + `Set#inspect` → `Set[...]`, `Ractor::Port` removals, `Kernel#open` pipe removal, `Process::Status` bitwise removal, OpenSSL 4, ZJIT (Rust 1.85.0+) vs YJIT. The description de-conflicts with `rails-upgrade` (interpreter version vs framework version) — verified by the skill-triggering test, which fires `ruby-upgrade` without collision.
+
 ## [7.0.0] - 2026-05-22
 
 ### Fixed

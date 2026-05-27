@@ -1,0 +1,1 @@
+We're still on Ruby 3.3 and I want to move the app to Ruby 4.0.5. Can you audit what breaks before I bump the .ruby-version — I'm worried about things like CGI and Net::HTTP changes — and then plan the upgrade?
