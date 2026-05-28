@@ -173,6 +173,7 @@ Start a new session in your chosen platform and ask for something that should tr
 - **37signals-style** - 37signals/Basecamp Rails patterns (controllers, models, Hotwire, testing, etc.)
 - **ruby-commit-message** - Conventional Commits for Rails projects with body written for junior developers
 - **rails-upgrade** - Systematic Rails version upgrade workflow (5.2+) with live railsdiff.org diffs, breaking change detection, and gem compatibility checks
+- **ruby-upgrade** - Ruby interpreter version upgrade workflow (3.x → 4.0.x) with breaking-change risk audit, mechanical toolchain edits (.ruby-version, Dockerfile, CI, RuboCop), and verification
 
 **Hotwire / Turbo / Stimulus**
 - **hwc-stimulus-fundamentals** - Stimulus controller lifecycle, values, targets, outlets
