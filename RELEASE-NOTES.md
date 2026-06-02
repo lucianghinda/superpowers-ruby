@@ -1,5 +1,13 @@
 # Superpowers Release Notes
 
+## v7.1.0 (2026-06-02)
+
+### Codex Marketplace Install Fix
+
+- **Codex command names fixed** — Codex uses `codex plugin add` and `codex plugin remove`, not `install` / `uninstall`. The README, Codex install guide, and plugin-install test docs now use the current CLI command names.
+- **Marketplace discovery fixed** — Codex looks for marketplace entries in `.agents/plugins/marketplace.json`, then installs the plugin from the indexed plugin path. This release adds that index and a lightweight `plugins/superpowers-ruby` path so `codex plugin add superpowers-ruby@superpowers-ruby` can find the plugin after the marketplace is added or upgraded.
+- **Stale snapshot recovery documented** — if an older marketplace snapshot reports `plugin was not found`, run `codex plugin marketplace upgrade superpowers-ruby` and retry `codex plugin add superpowers-ruby@superpowers-ruby`.
+
 ## v7.0.1 (2026-05-27)
 
 ### Ruby Interpreter Upgrade
@@ -26,7 +34,6 @@
   codex plugin marketplace add lucianghinda/superpowers-ruby
   codex plugin add superpowers-ruby@superpowers-ruby
   ```
-- **Codex marketplace index required** — Codex looks for marketplace entries in `.agents/plugins/marketplace.json`, then installs the plugin from the indexed plugin path. If an older marketplace snapshot reports `plugin was not found`, run `codex plugin marketplace upgrade superpowers-ruby` and retry `codex plugin add superpowers-ruby@superpowers-ruby`.
 - **Legacy symlink install still supported** — users already on the `~/.agents/skills/superpowers-ruby` → clone symlink path can stay where they are. The new plugin install is recommended for new setups (version pinning plus `codex plugin marketplace upgrade` / `codex plugin remove` semantics) but not required. `.codex/INSTALL.md` documents both paths and the optional migration step.
 - **Skills-only manifest in this release** — the Codex plugin currently exposes the skills directory only. Codex hooks integration (matching the existing Claude Code/Cursor/Copilot session-start context injection) is intentionally deferred — Codex's hook schema is not publicly documented at the time of this release, so adding a `hooks/hooks.json` entry without verified format risks shipping a broken hook config. Hooks parity for Codex is tracked as a follow-up.
 

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [7.1.0] - 2026-06-02
+
 ### Fixed
 
 - **Codex install docs**: Corrected Codex's plugin command from `codex plugin install superpowers-ruby@superpowers-ruby` to `codex plugin add superpowers-ruby@superpowers-ruby`, and updated uninstall guidance to use `codex plugin remove`.
