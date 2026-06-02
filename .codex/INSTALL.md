@@ -16,7 +16,15 @@ installed via Codex's native plugin system.
 
 ```bash
 codex plugin marketplace add lucianghinda/superpowers-ruby
-codex plugin install superpowers-ruby@superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
+```
+
+If you previously added the marketplace and Codex says the plugin was not found,
+refresh the marketplace snapshot and retry the add command:
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
 ```
 
 Restart Codex (quit and relaunch the CLI). Skills are discovered automatically.
@@ -30,7 +38,7 @@ codex plugin marketplace upgrade superpowers-ruby
 To uninstall:
 
 ```bash
-codex plugin uninstall superpowers-ruby
+codex plugin remove superpowers-ruby@superpowers-ruby
 ```
 
 ## Option 2 — Legacy symlink install
@@ -99,7 +107,7 @@ rm ~/.agents/skills/superpowers-ruby
 
 # Install via Codex's plugin system
 codex plugin marketplace add lucianghinda/superpowers-ruby
-codex plugin install superpowers-ruby@superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
 ```
 
 Restart Codex to pick up the plugin install.

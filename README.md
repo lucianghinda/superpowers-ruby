@@ -64,7 +64,7 @@ Quick reference:
 | Platform | Install model | Install command |
 |---|---|---|
 | **Claude Code** | Native plugin | `/plugin marketplace add lucianghinda/superpowers-ruby` then `/plugin install superpowers-ruby@superpowers-ruby` |
-| **Codex** (7.0.0+) | Native plugin | `codex plugin marketplace add lucianghinda/superpowers-ruby` then `codex plugin install superpowers-ruby@superpowers-ruby` |
+| **Codex** (7.0.0+) | Native plugin | `codex plugin marketplace add lucianghinda/superpowers-ruby` then `codex plugin add superpowers-ruby@superpowers-ruby` |
 | **GitHub Copilot CLI** | Native plugin | `copilot plugin marketplace add lucianghinda/superpowers-ruby` then `copilot plugin install superpowers-ruby@superpowers-ruby` |
 | **Cursor** | Local clone (no marketplace yet) | `cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpowers-ruby` |
 | **OpenCode** | Agent-driven setup | See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) |
@@ -105,7 +105,15 @@ native plugin system:
 
 ```bash
 codex plugin marketplace add lucianghinda/superpowers-ruby
-codex plugin install superpowers-ruby@superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
+```
+
+If you previously added the marketplace and Codex says the plugin was not found,
+refresh the marketplace snapshot and retry the add command:
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
 ```
 
 A legacy symlink install (clone + `ln -s …skills ~/.agents/skills/`) is also

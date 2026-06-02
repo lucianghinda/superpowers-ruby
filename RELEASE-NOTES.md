@@ -24,9 +24,10 @@
 - **`.codex-plugin/plugin.json` manifest** — superpowers-ruby is now a proper Codex plugin. superpowers-ruby 7.0.0+ users can install via the native plugin system instead of the legacy clone-and-symlink dance:
   ```bash
   codex plugin marketplace add lucianghinda/superpowers-ruby
-  codex plugin install superpowers-ruby@superpowers-ruby
+  codex plugin add superpowers-ruby@superpowers-ruby
   ```
-- **Legacy symlink install still supported** — users already on the `~/.agents/skills/superpowers-ruby` → clone symlink path can stay where they are. The new plugin install is recommended for new setups (version pinning, `codex plugin upgrade`, `codex plugin uninstall` semantics) but not required. `.codex/INSTALL.md` documents both paths and the optional migration step.
+- **Codex marketplace index required** — Codex looks for marketplace entries in `.agents/plugins/marketplace.json`, then installs the plugin from the indexed plugin path. If an older marketplace snapshot reports `plugin was not found`, run `codex plugin marketplace upgrade superpowers-ruby` and retry `codex plugin add superpowers-ruby@superpowers-ruby`.
+- **Legacy symlink install still supported** — users already on the `~/.agents/skills/superpowers-ruby` → clone symlink path can stay where they are. The new plugin install is recommended for new setups (version pinning plus `codex plugin marketplace upgrade` / `codex plugin remove` semantics) but not required. `.codex/INSTALL.md` documents both paths and the optional migration step.
 - **Skills-only manifest in this release** — the Codex plugin currently exposes the skills directory only. Codex hooks integration (matching the existing Claude Code/Cursor/Copilot session-start context injection) is intentionally deferred — Codex's hook schema is not publicly documented at the time of this release, so adding a `hooks/hooks.json` entry without verified format risks shipping a broken hook config. Hooks parity for Codex is tracked as a follow-up.
 
 ## v6.5.0 (2026-05-06)

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Codex install docs**: Corrected Codex's plugin command from `codex plugin install superpowers-ruby@superpowers-ruby` to `codex plugin add superpowers-ruby@superpowers-ruby`, and updated uninstall guidance to use `codex plugin remove`.
+- **Codex marketplace discovery**: Added Codex's required `.agents/plugins/marketplace.json` index and a lightweight `plugins/superpowers-ruby` marketplace path so `codex plugin add superpowers-ruby@superpowers-ruby` can find the plugin after the marketplace is added or upgraded.
+
 ## [7.0.1] - 2026-05-27
 
 ### Added
@@ -16,7 +21,7 @@
 
 ### Added
 
-- **Codex plugin manifest**: Added `.codex-plugin/plugin.json` so the repo installs via Codex's native plugin system (`codex plugin marketplace add lucianghinda/superpowers-ruby` + `codex plugin install superpowers-ruby@superpowers-ruby`). The legacy symlink install (clone + `ln -s …skills ~/.agents/skills/`) remains supported for users already on it; see `.codex/INSTALL.md` for both paths and the migration guide.
+- **Codex plugin manifest**: Added `.codex-plugin/plugin.json` so the repo installs via Codex's native plugin system (`codex plugin marketplace add lucianghinda/superpowers-ruby` + `codex plugin add superpowers-ruby@superpowers-ruby`). The legacy symlink install (clone + `ln -s …skills ~/.agents/skills/`) remains supported for users already on it; see `.codex/INSTALL.md` for both paths and the migration guide.
 
 ### Changed
 

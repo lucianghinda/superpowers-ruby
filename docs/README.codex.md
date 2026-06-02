@@ -1,6 +1,7 @@
 # Superpowers for Codex
 
-Guide for using Superpowers with OpenAI Codex via native skill discovery.
+Guide for using Superpowers with OpenAI Codex via the native plugin system or
+legacy skill discovery.
 
 ## Quick Install
 
@@ -10,12 +11,51 @@ Tell Codex:
 Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/superpowers-ruby/refs/heads/main/.codex/INSTALL.md
 ```
 
-## Manual Installation
+## Plugin Installation
+
+superpowers-ruby 7.0.0+ ships with a Codex plugin manifest. For new installs,
+use Codex's plugin system:
+
+```bash
+codex plugin marketplace add lucianghinda/superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
+```
+
+If you previously added the marketplace and Codex says the plugin was not found,
+refresh the marketplace snapshot and retry the add command:
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
+```
+
+Restart Codex after installing. Confirm the plugin is visible:
+
+```bash
+codex plugin list
+```
+
+To update later:
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+```
+
+To uninstall:
+
+```bash
+codex plugin remove superpowers-ruby@superpowers-ruby
+```
+
+## Legacy Symlink Installation
 
 ### Prerequisites
 
 - OpenAI Codex CLI
 - Git
+
+Use this path if you prefer to keep skills under `~/.agents/skills/` without
+going through Codex's plugin system, or if you're testing a local clone.
 
 ### Steps
 
@@ -49,7 +89,12 @@ cmd /c mklink /J "$env:USERPROFILE\.agents\skills\superpowers-ruby" "$env:USERPR
 
 ## How It Works
 
-Codex has native skill discovery — it scans `~/.agents/skills/` at startup, parses SKILL.md frontmatter, and loads skills on demand. Superpowers skills are made visible through a single symlink:
+The plugin install reads `.codex-plugin/plugin.json` and exposes the bundled
+`skills/` directory to Codex.
+
+The legacy install uses Codex's skill discovery directly. Codex scans
+`~/.agents/skills/` at startup, parses SKILL.md frontmatter, and loads skills on
+demand. Superpowers skills are made visible through a single symlink:
 
 ```
 ~/.agents/skills/superpowers-ruby/ → ~/.codex/superpowers-ruby/skills/
@@ -89,6 +134,14 @@ The `description` field is how Codex decides when to activate a skill automatica
 
 ## Updating
 
+For plugin installs:
+
+```bash
+codex plugin marketplace upgrade superpowers-ruby
+```
+
+For legacy symlink installs:
+
 ```bash
 cd ~/.codex/superpowers-ruby && git pull
 ```
@@ -96,6 +149,15 @@ cd ~/.codex/superpowers-ruby && git pull
 Skills update instantly through the symlink.
 
 ## Uninstalling
+
+For plugin installs:
+
+```bash
+codex plugin remove superpowers-ruby@superpowers-ruby
+codex plugin marketplace remove superpowers-ruby
+```
+
+For legacy symlink installs:
 
 ```bash
 rm ~/.agents/skills/superpowers-ruby
