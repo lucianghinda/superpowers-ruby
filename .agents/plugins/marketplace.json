@@ -1,0 +1,21 @@
+{
+  "name": "superpowers-ruby",
+  "interface": {
+    "displayName": "Superpowers Ruby"
+  },
+  "plugins": [
+    {
+      "name": "superpowers-ruby",
+      "source": {
+        "source": "local",
+        "path": "./plugins/superpowers-ruby"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": ["CODEX"]
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

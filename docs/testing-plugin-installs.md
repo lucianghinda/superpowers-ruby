@@ -168,7 +168,7 @@ rm ~/.agents/skills/superpowers-ruby
 codex plugin marketplace add "$REPO" --ref "$BRANCH"
 
 # 3. Install
-codex plugin install superpowers-ruby@superpowers-ruby
+codex plugin add superpowers-ruby@superpowers-ruby
 
 # 4. Confirm install location matches expectation
 codex plugin list
@@ -199,7 +199,7 @@ ln -s /Users/<you>/.codex/superpowers-ruby/skills ~/.agents/skills/superpowers-r
 If you used the **plugin path**:
 
 ```bash
-codex plugin uninstall superpowers-ruby
+codex plugin remove superpowers-ruby@superpowers-ruby
 codex plugin marketplace remove superpowers-ruby
 # Reinstall whichever production setup you were on (symlink or plugin)
 ```
