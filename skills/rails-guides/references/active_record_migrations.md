@@ -722,6 +722,24 @@ They need to be added separately using `add_index`.
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
+For example, MySQL supports `algorithm` and `lock` options on column operations
+(`add_column`, `remove_column`, `change_column`, `rename_column`) and index
+operations (`add_index`, `remove_index`) to control how DDL statements are
+executed. This enables online schema changes without blocking reads or writes:
+
+```ruby
+add_column :users, :name, :string, algorithm: :instant, lock: :none
+add_index :users, :email, algorithm: :inplace, lock: :none
+```
+
+The MySQL `algorithm` option accepts `:default`, `:copy`, `:inplace`, or `:instant`.
+The `lock` option accepts `:default`, `:none`, `:shared`, or `:exclusive`.
+See the [MySQL documentation on Online DDL](https://dev.mysql.com/doc/refman/en/innodb-online-ddl-operations.html)
+for details on which algorithms and lock modes are supported for each operation.
+
+NOTE: PostgreSQL also supports the `algorithm` option on `add_index` and
+`remove_index` (e.g., `algorithm: :concurrently`), but does not support `lock`.
+
 NOTE: `default` cannot be specified via command line when generating migrations.
 
 ### References
@@ -1811,11 +1829,17 @@ files. Here’s why:
 - **Performance**: Data migrations can take a long time to run and may lock your
   tables, affecting application performance and availability.
 
-Instead, consider using the
-[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This
-gem provides a framework for creating and managing data migrations and other
-maintenance tasks in a way that is safe and easy to manage without interfering
-with schema migrations.
+Instead consider using the built-in `script/` directory or a dedicated gem
+such as [`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks).
+
+Scripts can be generated using the `rails generate script my_script` syntax. These are placed
+within the `script/` folder and can be run with `rails runner script/my_script.rb`. This offers a
+dedicated location for one-off scripts and data migrations.
+
+If you require more functionality, then the
+[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem provides a framework for
+creating and managing data migrations and other maintenance tasks in a way that is safe and easy to
+manage without interfering with schema migrations.
 
 Customizing Migration Behavior with Swappable Strategies
 --------------------------------------------------------
