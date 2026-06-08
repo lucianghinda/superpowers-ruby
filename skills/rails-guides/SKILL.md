@@ -71,6 +71,11 @@ Official Rails documentation for reference during development.
 - `references/api_app.md` — API-only Rails, slim middleware stack
 - `references/rails_on_rack.md` — Middleware stack, Rack integration
 
+### Extending Rails
+- `references/engines.md` — Mountable engines, isolated namespaces, hooks, testing
+- `references/generators.md` — Custom generators, templates, overriding defaults
+- `references/plugins.md` — Creating gem-based plugins, core extensions, testing
+
 ### Advanced
 - `references/active_support_core_extensions.md` — String, Array, Hash, Date extensions
 - `references/active_support_instrumentation.md` — Notifications, log subscribers
