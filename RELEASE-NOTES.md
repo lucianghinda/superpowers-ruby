@@ -1,5 +1,14 @@
 # Superpowers Release Notes
 
+## v7.3.0 (2026-06-10)
+
+### Ruby Method Ordering
+
+- **The `ruby` skill now teaches file layout** — a new "Method Ordering & File Layout" section plus `references/method_ordering.md` codify how to order a Ruby class top to bottom: `extend`/`include`, constants, `attr_*`/macros, `initialize`, public methods (highest-level entry points first), `protected`, then `private` helpers. A reader should descend exactly one level of abstraction at a time — the stepdown / newspaper layout.
+- **Breadth-first, not depth-first** — the core rule groups private helpers by abstraction *altitude* (all the sibling steps, then their helpers, then the leaves) instead of tucking each helper directly under its single caller. Named precisely, it's a breadth-first traversal of the call tree by altitude — the same idea as the Single Level of Abstraction Principle.
+- **Built from a real baseline** — the cautionary example is an actual unguided-agent output that grouped by feature and interleaved altitudes; the reference answer reorders it and shows where a cross-cutting `format_money` leaf belongs (sunk to the bottom, where dependency-free utilities live and future extraction is cheapest).
+- **Verified test-first** — written via skill-TDD: an agent reproduced the depth-first trap without the skill, then a fresh agent on a different class (`ShippingLabelPrinter`) produced the correct breadth-first ordering with it.
+
 ## v7.1.0 (2026-06-02)
 
 ### Codex Marketplace Install Fix
