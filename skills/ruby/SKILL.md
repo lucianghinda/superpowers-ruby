@@ -218,6 +218,45 @@ user&.profile&.avatar_url  # returns nil if any link is nil
 - `!` suffix: dangerous version - mutates receiver or raises on failure (`save!`, `sort!`)
 - Always provide a non-bang alternative when defining bang methods
 
+## Method Ordering & File Layout
+
+Lay a class out top-to-bottom so a reader descends one abstraction level at a time — the "stepdown" / newspaper layout. Element order:
+
+1. `extend` / `include` / `prepend`
+2. Constants
+3. `attr_*` readers/writers and class macros (`has_many`, `validates`, `scope`)
+4. `def initialize`
+5. Public methods — highest-level entry points first
+6. `protected`
+7. `private` helpers — grouped by abstraction altitude
+
+**Within the public block and within the private block, order breadth-first by abstraction altitude, not depth-first by caller.** Keep every method at one altitude next to its siblings, then the helpers they call, then the helpers those call. Defining a helper directly beneath its lone caller scatters the high-level steps and buries them under detail.
+
+```ruby
+# Good — breadth-first by altitude: stages cluster, then their helpers
+def process; validate; charge; notify; end   # altitude 1 (public entry)
+
+private
+
+def validate; end                            # altitude 2: stages together
+def charge;   end
+def notify;   end
+
+def verify_customer; end                      # altitude 3: helpers together
+def submit_payment;  end
+def write_audit_log; end
+
+# Bad — depth-first by caller: altitudes 2 and 3 interleave, stages scatter
+def validate;        end
+def verify_customer; end
+def charge;          end
+def submit_payment;  end
+def notify;          end
+def write_audit_log; end
+```
+
+See `references/method_ordering.md` for worked examples, the stepdown/SLAP background, and where shared helpers go.
+
 ## Common Mistakes
 
 | Mistake | Fix |
@@ -228,6 +267,7 @@ user&.profile&.avatar_url  # returns nil if any link is nil
 | `rescue Exception` | Rescue `StandardError` — `Exception` catches `SignalException`, `NoMemoryError` |
 | Deep `&.` chains (3+ links) | Extract to a method or use explicit nil check |
 | Missing `# frozen_string_literal: true` | Add to top of every file |
+| Helper defined right under its single caller (depth-first) | Group methods by abstraction altitude; breadth-first layout (stepdown rule) |
 
 ## References
 
@@ -235,3 +275,4 @@ user&.profile&.avatar_url  # returns nil if any link is nil
 - `references/error_handling.md` - Exception hierarchies, result objects, retry patterns
 - `references/performance.md` - YJIT, GC tuning, benchmarking, profiling
 - `references/ood-philosophy.md` - OOD principles, naming, SOLID, TRUE heuristic, Law of Demeter
+- `references/method_ordering.md` - File layout order, stepdown rule, breadth-first vs depth-first method ordering

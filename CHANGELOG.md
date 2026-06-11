@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [7.3.0] - 2026-06-10
+
+### Added
+
+- **ruby skill — method ordering & file layout**: Added a "Method Ordering & File Layout" section to the `ruby` skill plus a new `references/method_ordering.md`. Documents the top-to-bottom class layout (`extend`/`include` → constants → `attr_*`/macros → `initialize` → public → `protected` → `private`) and the core rule: order methods **breadth-first by abstraction altitude**, not depth-first by caller — cluster every method at one altitude, then the helpers they call, then their leaves. Frames the convention precisely (stepdown rule / SLAP / newspaper metaphor, named as a breadth-first traversal of the call tree) with a worked `SalesReportBuilder` example whose *bad* version is a real unguided-agent output, a "where shared helpers go" decision guide, a common-mistakes table, and recognized exceptions. Developed test-first per `writing-skills`: an unguided agent reproduced the depth-first feature-grouping trap, then a guided agent on a fresh `ShippingLabelPrinter` produced the correct breadth-first layout (sinking the shared `money` leaf to the bottom).
+
 ## [7.1.0] - 2026-06-02
 
 ### Fixed
