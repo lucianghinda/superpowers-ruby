@@ -1,5 +1,19 @@
 # Superpowers Release Notes
 
+## v7.4.0 (2026-08-04)
+
+### A Harder Brainstorming Gate
+
+- **Chat approval is no longer a shortcut to code** — the HARD-GATE now requires *all four* of: design presented and approved, spec written and committed, user review of the written spec, and `writing-plans` invoked. Baseline testing surfaced the exact lazy reading it closes — an agent reasoning that "the HARD-GATE only requires that a design be presented and approved... a lazy reading says I'm cleared to scaffold/code." The tightened wording holds even with the checklist removed from context.
+- **Rationalization table and Red Flags list** — built from excuses that pressure-tested agents produced verbatim ("user gave informed consent to skip", "approved = build it", "skip the doc, it's tiny", "present design and code together"), each paired with the counter. Follows the bulletproofing guidance `writing-skills` prescribes for discipline skills.
+- **Persist as you go** — the spec file is now created early as a `Status: DRAFT` and appended to as each decision lands, instead of written once at the end. Chat history is not storage: a crashed, compacted, or interrupted session resumes from the draft file. The spec must also carry a `## Decisions` section quoting each user decision with a one-line rationale, which downstream spec reviews and plan-fidelity checks key off.
+- **A sanctioned fast path for time-pressed users** — the one-question-per-message rule stays the default, but up to 4 *genuinely independent* multiple-choice questions may now be batched into a single `AskUserQuestion` call. Dependent questions are never batched. This replaces agents silently breaking the rule under deadline pressure, which is what baseline testing observed.
+- **Scope boundaries and wiring** — a new "When NOT to Use" section routes debugging to `systematic-debugging`, plan execution to `executing-plans`, and pure research to neither. The previously orphaned `spec-document-reviewer-prompt.md`, which shipped in the skill directory but was never referenced, is now offered as an optional fresh-context subagent review for complex specs.
+- **Description rewritten to CSO rules** — trigger-only, third person, no workflow summary, dropping the former "You MUST" imperative and the trailing what-it-does sentence that fell into the documented description trap. Re-verified with `tests/skill-triggering`: the skill still fires from the naive prompt without being named.
+- **Flowchart resynced** — the DOT graph gained a `Create DRAFT spec` node on the clarifying-questions path (before the design exists, matching where the prose says drafting begins) and renamed `Write design doc` to `Finalize design doc`. The flowcharts are the authoritative process definition here, so a graph that lags a prose edit is a real ambiguity, not a cosmetic one.
+
+Skill changes contributed by @helphop, developed test-first with the plugin's own `writing-skills` process.
+
 ## v7.3.0 (2026-06-10)
 
 ### Ruby Method Ordering
