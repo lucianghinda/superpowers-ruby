@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **brainstorming skill — hardened gate, rationalization counters, persist-as-you-go drafts** (contributed by @helphop): The HARD-GATE now requires *all* of design approved, spec written and committed, user review of the written spec, and `writing-plans` invoked — with chat approval ("looks good, go ahead") explicitly named as clearing only the next checklist item, not the gate. Adds a "When NOT to Use" section (debugging → `systematic-debugging`, plan execution → `executing-plans`, pure research → nothing to design), a rationalization table and Red Flags list built from excuses captured verbatim in baseline subagent tests, and a "Persist as you go" rule: create the spec as a `Status: DRAFT` file early and append each decision as it lands, so a crashed or compacted session loses nothing. The spec must now carry a `## Decisions` section quoting each user decision with a one-line rationale, which downstream spec reviews and plan-fidelity checks key off. Names `AskUserQuestion` for option rendering and allows batching up to 4 *genuinely independent* multiple-choice questions (dependent questions are never batched). Wires up the previously orphaned `spec-document-reviewer-prompt.md` as an optional fresh-context review for complex specs, and compresses the inline Visual Companion section ~40% (details already live in `visual-companion.md`; the verbatim offer script and own-message rule are kept). Developed test-first per `writing-skills`: subagent pressure scenarios were run against the old text first, and the tightened gate holds afterward even with the checklist removed from view. The description was also rewritten to `writing-skills` CSO rules — trigger-only, third person, no workflow summary — dropping the previous "You MUST" imperative; re-verified with `tests/skill-triggering` (brainstorming still fires from the naive prompt).
+
+### Fixed
+
+- **brainstorming skill — process flowchart out of sync**: The DOT graph still showed a single `Write design doc` node after design approval, contradicting the checklist's renamed "Finalize design doc" step and omitting the new persist-as-you-go draft entirely. Added a `Create DRAFT spec (append decisions as they land)` node on the clarifying-questions path — before the design exists, matching where the prose says drafting starts — and renamed the post-approval node to `Finalize design doc (promote DRAFT, add Decisions)`, including on the "changes requested" loop-back edge. Matters because the flowcharts are the authoritative process definition, so prose and graph disagreeing is a real ambiguity.
+
 ## [7.3.0] - 2026-06-10
 
 ### Added
