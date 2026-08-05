@@ -33,14 +33,26 @@ const extractAndStripFrontmatter = (content) => {
   return { frontmatter, content: body };
 };
 
+// Module-level cache for bootstrap content.
+// The SKILL.md file does not change during a session, so reading + parsing it
+// once eliminates redundant fs.existsSync + fs.readFileSync + regex work on
+// every agent step. See #1202 for the full analysis.
+let _bootstrapCache = undefined; // undefined = not yet loaded, null = file missing
+
 export const SuperpowersPlugin = async ({ client, directory }) => {
   const superpowersSkillsDir = path.resolve(__dirname, '../../skills');
 
-  // Helper to generate bootstrap content
+  // Helper to generate bootstrap content (cached after first call)
   const getBootstrapContent = () => {
+    // Return cached result on subsequent calls
+    if (_bootstrapCache !== undefined) return _bootstrapCache;
+
     // Try to load using-superpowers skill
     const skillPath = path.join(superpowersSkillsDir, 'using-superpowers', 'SKILL.md');
-    if (!fs.existsSync(skillPath)) return null;
+    if (!fs.existsSync(skillPath)) {
+      _bootstrapCache = null;
+      return null;
+    }
 
     const fullContent = fs.readFileSync(skillPath, 'utf8');
     const { content } = extractAndStripFrontmatter(fullContent);
@@ -54,7 +66,7 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 
 Use OpenCode's native \`skill\` tool to list and load superpowers-ruby skills.`;
 
-    return `<EXTREMELY_IMPORTANT>
+    _bootstrapCache = `<EXTREMELY_IMPORTANT>
 You have superpowers for Ruby and Rails.
 
 **IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
@@ -63,6 +75,8 @@ ${content}
 
 ${toolMapping}
 </EXTREMELY_IMPORTANT>`;
+
+    return _bootstrapCache;
   };
 
   return {
