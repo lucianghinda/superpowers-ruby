@@ -1,41 +1,61 @@
 ---
 created: 2026-08-05T03:47:08Z
-branch: main
+branch: lg/upstream-divergence-integration
 trigger: manual
-restored: false
+restored: true
+restored_at: 2026-08-05T08:29:14Z
 topic: upstream-divergence-integration
 ---
 
 # Handoff: upstream divergence review → integration batches
+
+> **Archived 2026-08-05.** Batch 1 shipped in this session. Batches 2–4 are
+> still open; pick them up from the review document listed under Files to Read.
 
 ## Goal
 
 Review everything that landed in `obra/superpowers` since this fork diverged
 (merge base `8ea3981`, 2026-03-19, ≈ upstream v5.0.5), decide what is worth
 porting into `superpowers-ruby` v7.4.0, and record the *why* for each proposal
-sourced from the merged upstream PR discussion rather than guessed. The review
-is complete and agreed; the porting work has not started.
+sourced from the merged upstream PR discussion rather than guessed.
 
 ## Current State
 
-**Done:**
+**Done — review:**
 - Full triage of the 291-commit upstream delta / 100 merged PRs since divergence
-- Review document written to `docs/plans/2026-08-04-upstream-divergence-review.md`
-  (1172 lines, **untracked** — not committed yet)
-- Two independent reviewers ran over this: Claude (PR-rationale depth) and Codex
-  (commit-ledger completeness + harness manifests). Codex merged its findings
-  into the same file rather than writing a separate doc.
-- Every fork-state claim in the document was verified by grep against the working
-  tree. No claim is carried on trust.
-- Integration order agreed as four batches (see Next Steps).
+- Review document at `docs/plans/2026-08-04-upstream-divergence-review.md`
+  (1172 lines), committed in `9fd7d0b`
+- Two independent reviewers covered the delta: Claude (PR-rationale depth) and
+  Codex (commit-ledger completeness + harness manifests). Codex merged its
+  findings into the same file rather than writing a separate doc.
+- Every fork-state claim was verified by grep against the working tree
 
-**Not started:**
-- No skill, script, hook, or manifest has been modified. The repo is clean apart
-  from the untracked review document.
+**Done — Batch 1, all committed on `lg/upstream-divergence-integration`:**
 
-**Known doc defect:** line 712 of the review doc duplicates the sentence already
-wrapped at lines 709–710 ("That is a cheap CI check for a fork in exactly this
-position."). Merge artifact from the Codex pass. One-line delete.
+| Commit | Change | Upstream |
+|---|---|---|
+| `f74d1b6` | `.codex-plugin/plugin.json` — explicit `"hooks": {}` | #1897 |
+| `5bb9a1f` | `find-polluter.sh` — path matching + empty-result guard | #2011 |
+| `ed0363b` | `Ultrathink` → `Ultra-think` | #1558 |
+| `2d426b4` | Two `@file.md` refs → relative markdown links | #1532, #631 |
+| `7dea012` | Circle K phrase, 4× `/Users/jesse`, 3× bare `debugging` | #1531, #1122, #1601 |
+
+**Batch 1 verification:**
+- `find-polluter.sh` functionally tested in a throwaway toy repo: 11/11 checks.
+  The test first reproduces the old silent no-op ("Found 1 test files", exit 0,
+  polluter never run), then proves the fix counts all three test files, bisects
+  to the polluter, reports 0 honestly on no match, and accepts the pattern with
+  or without a leading `./`. The test script was scratch-only and not kept.
+- `.codex-plugin/plugin.json` re-parsed as valid JSON with the `hooks` key set
+- `bash -n` clean on `find-polluter.sh`; shellcheck is not installed on this
+  machine, so upstream's shellcheck pass was not repeated
+- All original defect greps return clear
+
+**Not started:** Batches 2, 3, and 4. Nothing else in the tree is modified.
+
+**Known doc defect (unfixed):** line 712 of the review doc duplicates the
+sentence already wrapped at lines 709–710 ("That is a cheap CI check for a fork
+in exactly this position."). Merge artifact from the Codex pass. One-line delete.
 
 ## Key Decisions
 
@@ -51,84 +71,74 @@ position."). Merge artifact from the Codex pass. One-line delete.
   two-reviewer flow.
 - **Take the SDD hardening that does not depend on #1717** — RED/GREEN evidence
   fields (#1065), reviewer diff scoping (#1538), read-only reviewers (#1543),
-  and a bounded fix loop (#1998). Codex's decomposition; verified separable.
+  and a bounded fix loop (#1998). Verified separable.
 - **Keep `verification-before-completion`'s "dishonesty" line** — upstream cut it
-  under an eval they themselves flagged *inconclusive, low-confidence*. Not
-  enough evidence to follow.
+  under an eval they themselves flagged *inconclusive, low-confidence*.
 - **Do not port upstream's `CHANGELOG.md` deletion (#1163)** — this fork actively
   maintains both `CHANGELOG.md` and `RELEASE-NOTES.md` per `.version-bump.json`.
-  Upstream's simplification would delete live fork history.
 - **Gemini needs no action** — this fork ships `gemini-extension.json`,
   `GEMINI.md`, and `skills/using-superpowers/references/gemini-tools.md`.
-  Upstream removed Gemini (#1846) then reverted (#1959); the fork's current state
-  already matches where upstream landed.
+  Upstream removed Gemini (#1846) then reverted (#1959); the fork already
+  matches where upstream landed.
 - **Worktree rewrite (#1121/#1124) cannot be ported** — this fork's
   `using-git-worktrees` is Rails/SQLite-specific (246 lines vs upstream's 167)
   and delegates to `using-sqlite-worktrees`. Take only the transferable research
   finding: *agents anchor on code blocks and skip prose* (0/4 consent compliance
   when the gate was prose).
+- **Batch 1 landed as five commits, not one** — the causes differ (harness
+  manifest semantics, a shell bug, a keyword-scanner trap, broken links, personal
+  references), so each is independently revertable with its own recorded WHY.
 - **Rationale must come from merged PRs, not inference** — upstream enforces a PR
   template with "What problem are you trying to solve?" and "What alternatives
-  did you consider?", so every claim in the review doc is quotable first-hand.
+  did you consider?", so every claim is quotable first-hand.
 
 ## Modified Files
 
-- `docs/plans/2026-08-04-upstream-divergence-review.md` — **untracked**, needs a
-  commit decision
+All committed on `lg/upstream-divergence-integration`; working tree clean.
 
-Nothing else in the tree is touched.
+- `docs/plans/2026-08-04-upstream-divergence-review.md` (new)
+- `.codex-plugin/plugin.json`
+- `skills/systematic-debugging/find-polluter.sh`
+- `skills/systematic-debugging/SKILL.md`
+- `skills/systematic-debugging/CREATION-LOG.md`
+- `skills/systematic-debugging/root-cause-tracing.md`
+- `skills/test-driven-development/SKILL.md`
+- `skills/writing-skills/SKILL.md`
+- `skills/receiving-code-review/SKILL.md`
+- `skills/using-superpowers/SKILL.md`
+- `skills/using-git-worktrees/SKILL.md`
+- `docs/testing.md`
 
 ## Failed Approaches
 
-- **Ruby 2.6 is the active system Ruby** (`ruby -v` → 2.6.10). The first helper
-  script used an endless method definition (`def blob(ref, path) = ...`) and died
-  with a syntax error. Use classic `def`/`end` for throwaway scripts here, or
-  activate a modern Ruby via chruby first.
+- **`tests/opencode/run-tests.sh` is red on clean `main`** — `test-plugin-loading.sh`
+  runs `cp .../lib` and this repo has no `lib/` directory. Confirmed pre-existing
+  by stashing Batch 1 and re-running. Do not chase this while porting; it is a
+  separate fix.
+- **Ruby 2.6 is the active system Ruby** (`ruby -v` → 2.6.10). An endless method
+  definition (`def blob(ref, path) = ...`) dies with a syntax error. Use classic
+  `def`/`end` for throwaway scripts, or activate a modern Ruby via chruby first.
 - **zsh mangles `$MB:path` in `git show`** — the `:` triggers modifier parsing and
   yields "bad substitution". Use `${MB}:path`.
 - **`grep --include=*.md` unquoted in zsh** fails with "no matches found". Quote
   the glob or pass explicit directories.
 - **Assuming Codex would write a separate plan file was wrong** — it edited
   `docs/plans/2026-08-04-upstream-divergence-review.md` in place, growing it from
-  921 to 1172 lines. Check file size/heading diff before looking for a second doc.
+  921 to 1172 lines. Check file size/heading diff before hunting for a second doc.
 
 ## Files to Read
 
 - `docs/plans/2026-08-04-upstream-divergence-review.md` — **the primary artifact.**
-  Contains the tiered assessment, per-item upstream rationale with quotes, the
-  suggested order, the verification boundary, and Appendix A (all 291 commits
-  classified). Read this first; everything below is a summary of it.
+  Tiered assessment, per-item upstream rationale with quotes, suggested order,
+  verification boundary, and Appendix A (all 291 commits classified).
 - `docs/handoffs/_archive/2026-04-21-sqlite-worktrees-skill.md` — context on why
   the worktree skill diverged from upstream (SQLite/Rails 8 multi-DB seeding).
 
 ## Next Steps
 
-Batches are ordered by risk. Batch 1 is mechanical and was explicitly offered to
-the user as the starting point.
+Batch 1 is done. Resume at Batch 2.
 
-1. **Batch 1 — five defect fixes, one commit (~30 lines, zero risk):**
-   - `.codex-plugin/plugin.json` — add top-level `"hooks": {}`. Currently absent,
-     so Codex auto-discovers the root `hooks/hooks.json` (Claude's SessionStart
-     registration) and tries to run a Claude-shaped hook. (upstream #1897)
-   - `skills/systematic-debugging/SKILL.md:240` — `Ultrathink` → `Ultra-think`.
-     Trips Claude Code's keyword scanner and silently forces extended thinking on
-     every session that loads the skill. (#1558)
-   - `skills/test-driven-development/SKILL.md:349` and
-     `skills/writing-skills/SKILL.md:570` — replace `@file.md` with relative
-     markdown links. (#1532, #631)
-   - `skills/systematic-debugging/find-polluter.sh:22` — `find . -path "./$TEST_PATTERN"`
-     plus an empty-result guard so `TOTAL` is 0 rather than `wc -l`'s 1. Currently
-     a silent no-op that reports "Found 1 test files" and exits clean. (#2011)
-   - Cosmetics: `skills/receiving-code-review/SKILL.md:129` (Circle K phrase →
-     upstream's plain-language replacement, #1531);
-     `skills/using-superpowers/SKILL.md:101,105,109` (bare `debugging` →
-     `systematic-debugging`, #1601); `/Users/jesse` in
-     `skills/using-git-worktrees/SKILL.md:216`,
-     `skills/systematic-debugging/CREATION-LOG.md:7`,
-     `skills/systematic-debugging/root-cause-tracing.md:36`,
-     `docs/testing.md:152` (#1122).
-
-2. **Batch 2 — small, cited, low risk:**
+1. **Batch 2 — small, cited, low risk:**
    - `.opencode/plugins/superpowers.js` — `getBootstrapContent()` is called at
      line 84 on *every* `messages.transform`, doing a full `readFileSync` +
      frontmatter parse + template build **before** the already-injected
@@ -140,10 +150,13 @@ the user as the starting point.
      `Buffer.alloc(payloadLen)` at line 66 (length read from client at line 56).
      (#1555)
    - Port `dispatching-parallel-agents` and `receiving-code-review` wholesale via
-     `git checkout upstream/main -- skills/<name>/SKILL.md`. Both are
-     byte-identical to the merge base here.
+     `git checkout upstream/main -- skills/<name>/SKILL.md`. Both were
+     byte-identical to the merge base. **Note:** `receiving-code-review` now
+     carries the Circle K fix from `7dea012`, and upstream's copy contains the
+     same replacement, so the port should overwrite cleanly — verify that before
+     committing rather than assuming it.
 
-3. **Batch 3 — brainstorm companion hardening (#1720), land separately:**
+2. **Batch 3 — brainstorm companion hardening (#1720), land separately:**
    `skills/brainstorming/scripts/server.cjs` is the 338-line pre-hardening
    version (upstream's is 723). No authentication, any origin accepted; on a
    `--host 0.0.0.0` bind any routable host can read screens and inject fake
@@ -154,8 +167,10 @@ the user as the starting point.
    the same 5 files as upstream, so `git checkout upstream/main -- skills/brainstorming/scripts/`
    is close to viable, then re-apply this fork's `SKILL.md` wiring.
    **Bring upstream's `tests/brainstorm-server` (12 files) with it.**
+   Batch 2's frame cap is a subset of this — if Batch 3 lands soon after, take
+   the cap as part of the wholesale port instead of hand-patching twice.
 
-4. **Batch 4 — manual ports requiring judgment:**
+3. **Batch 4 — manual ports requiring judgment:**
    - **Fix `skills/finishing-a-development-branch/SKILL.md`.** Confirmed live bug,
      worse here than upstream's version: line 143 runs
      `git worktree list | grep $(git branch --show-current)`, but Option 1
@@ -186,14 +201,15 @@ the user as the starting point.
      SDD, and systematic-debugging's verification-before-completion handoff, are
      currently stated nowhere else. (#1932)
 
-5. **Decide whether to commit the review document** and this handoff, and on
-   which branch. Currently on `main` with the review doc untracked. Per project
-   convention PRs target `lucianghinda/superpowers-ruby`; branch before
-   committing rather than committing to `main`.
+4. **Open the PR** against `lucianghinda/superpowers-ruby` once the intended
+   batches are in. Decide whether Batches 2–4 join this branch or get their own.
 
-6. **Optional, cheap:** add a CI check that compares every `[text](#anchor)` link
-   against the headings actually present in its target file — the method that
-   found upstream #2010 while someone was syncing a downstream fork.
+5. **Optional, cheap:** add a CI check comparing every `[text](#anchor)` link
+   against the headings present in its target file — the method that found
+   upstream #2010 while someone was syncing a downstream fork.
+
+6. **Separate from this effort:** fix the broken `tests/opencode` runner, and
+   delete the duplicated sentence at line 712 of the review doc.
 
 ## Open Questions
 
@@ -213,5 +229,7 @@ the user as the starting point.
   forge-agnostic (#1665/#1933). If this fork is GitHub-only forever, dropping the
   hardcoded `gh pr create` is portability polish rather than a fix — though the
   surrounding sequencing bug in that same skill must be fixed regardless.
-- **Commit the untracked review doc, or keep it local?** It is a large analysis
-  artifact, not shipped plugin content.
+- **Does a version bump belong with these ports?** Per project convention a bump
+  touches 9 files (`scripts/bump-version.sh` handles 6 JSON manifests; CHANGELOG,
+  RELEASE-NOTES, and the `#vX.Y.Z` pin in `.opencode/INSTALL.md` are manual). Not
+  done for Batch 1.
