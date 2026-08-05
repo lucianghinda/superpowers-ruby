@@ -2,7 +2,8 @@
 created: 2026-08-05T10:08:18Z
 branch: lg/upstream-divergence-integration
 trigger: manual
-restored: false
+restored: true
+restored_at: 2026-08-05T11:01:56Z
 topic: upstream-ports-batches-2-4
 ---
 
