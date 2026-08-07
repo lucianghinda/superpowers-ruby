@@ -60,6 +60,8 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Implementation matches spec?
 - No scope creep?
 - Breaking changes documented?
+- Where the implementation departs from the plan, is the deviation a justified
+  improvement or a problematic departure? Say which.
 
 **Production Readiness:**
 - Migration strategy (if schema changes)?
@@ -113,6 +115,13 @@ git diff {BASE_SHA}..{HEAD_SHA}
 - Give feedback on code you didn't review
 - Be vague ("improve error handling")
 - Avoid giving a clear verdict
+
+**When something is off with the plan, not the code:**
+- Significant deviation from the plan → ask the implementer to confirm it was
+  deliberate before treating it as a defect
+- The plan itself is wrong or incomplete → say so and recommend the plan
+  change, rather than filing issues against code that correctly implements a
+  bad plan
 
 ## Example Output
 
