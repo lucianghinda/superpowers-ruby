@@ -188,6 +188,9 @@ You MUST complete each phase before proceeding to the next.
    - Test passes now?
    - No other tests broken?
    - Issue actually resolved?
+   - **REQUIRED before claiming the bug is fixed:** use
+     superpowers-ruby:verification-before-completion. Run the commands and read
+     the output — a fix you believe in is not a fix you've verified.
 
 4. **If Fix Doesn't Work**
    - STOP

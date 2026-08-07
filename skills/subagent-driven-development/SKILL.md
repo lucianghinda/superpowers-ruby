@@ -37,6 +37,16 @@ digraph when_to_use {
 - Two-stage review after each task: spec compliance first, then code quality
 - Faster iteration (no human-in-loop between tasks)
 
+## Setup
+
+**REQUIRED before dispatching any implementer.** Use
+superpowers-ruby:using-git-worktrees to create an isolated workspace, or confirm
+you are already in one. Never start implementation on main/master without your
+human partner's explicit consent.
+
+This skill executes a plan written by superpowers-ruby:writing-plans. Read it and
+extract every task with its full text before dispatching anything.
+
 ## The Process
 
 ```dot
@@ -282,16 +292,6 @@ decision you make on the record.
   or break the task into smaller pieces
 - Don't try to fix manually (context pollution)
 
-## Integration
+## Alternative workflow
 
-**Required workflow skills:**
-- **superpowers-ruby:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
-- **superpowers-ruby:writing-plans** - Creates the plan this skill executes
-- **superpowers-ruby:requesting-code-review** - Code review template for reviewer subagents
-- **superpowers-ruby:finishing-a-development-branch** - Complete development after all tasks
-
-**Subagents should use:**
-- **superpowers-ruby:test-driven-development** - Subagents follow TDD for each task
-
-**Alternative workflow:**
 - **superpowers-ruby:executing-plans** - Use for parallel session instead of same-session execution

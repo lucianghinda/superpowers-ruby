@@ -268,11 +268,3 @@ report it**. A dirty worktree may hold uncommitted work nobody has looked at;
 - Get typed confirmation before discarding
 - Clean up the worktree for Option 1 and confirmed discards only
 
-## Integration
-
-**Called by:**
-- **subagent-driven-development** (Step 7) - After all tasks complete
-- **executing-plans** (Step 5) - After all batches complete
-
-**Pairs with:**
-- **using-git-worktrees** - Cleans up worktree created by that skill
