@@ -103,6 +103,11 @@ Task tool (general-purpose):
     - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
     - What you implemented (or what you attempted, if blocked)
     - What you tested and test results
+    - **TDD Evidence** (REQUIRED if TDD was required for this task):
+      - RED: command run, the relevant failing output from before the
+        implementation, and why that failure was the expected one
+      - GREEN: command run and the relevant passing output after
+      - "I followed TDD" is not evidence. Paste the output.
     - Files changed
     - Self-review findings (if any)
     - Any issues or concerns

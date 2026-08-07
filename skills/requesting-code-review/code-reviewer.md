@@ -27,6 +27,13 @@ git diff --stat {BASE_SHA}..{HEAD_SHA}
 git diff {BASE_SHA}..{HEAD_SHA}
 ```
 
+That diff is your evidence. Don't crawl the broader codebase — inspect code
+outside the diff only to evaluate a concrete risk you can name, and say in your
+report both what the risk was and what you checked.
+
+**Your review is read-only on this checkout.** Do not mutate the working tree,
+the index, HEAD, or branch state in any way.
+
 ## Review Checklist
 
 **Code Quality:**

@@ -252,14 +252,34 @@ Done!
 - Provide additional context if needed
 - Don't rush them into implementation
 
-**If reviewer finds issues:**
-- Implementer (same subagent) fixes them
-- Reviewer reviews again
-- Repeat until approved
-- Don't skip the re-review
+**If reviewer finds issues — the bounded fix loop:**
 
-**If subagent fails task:**
-- Dispatch fix subagent with specific instructions
+A fix round is one fix dispatch plus one re-review by the reviewer that raised
+the findings. **Five rounds maximum per task.**
+
+- **Rounds 1-3 — resume the original implementer.** Send it the open findings
+  verbatim. Its context is intact: it knows the task, the code, and its own
+  choices. If your harness cannot send another message to a live subagent,
+  dispatch a fresh one carrying the task text, its own prior report, and the
+  findings.
+- **Rounds 4-5 — dispatch a fresh implementer on a more capable model,** with
+  the framing "a prior implementer attempted this task N times; you own it
+  now." A loop that survives three resumes usually means the implementer
+  cannot see its own problem — fresh eyes and a capability bump in one move.
+- **Round 5 exhausted — the breaker trips.** Stop looping and adjudicate each
+  still-open finding yourself. If any is load-bearing, STOP and report BLOCKED
+  to your human partner. If none are, record the ruling for each and proceed.
+
+Never skip the re-review, and never let a round pass without the implementer
+re-running the tests covering the amended code.
+
+**Why bounded:** reviewers are nondeterministic, so an unbounded "repeat until
+approved" can keep surfacing new findings forever. The cap converts that into a
+decision you make on the record.
+
+**If subagent fails the task outright (BLOCKED / NEEDS_CONTEXT):**
+- Provide missing context and re-dispatch, re-dispatch on a more capable model,
+  or break the task into smaller pieces
 - Don't try to fix manually (context pollution)
 
 ## Integration
