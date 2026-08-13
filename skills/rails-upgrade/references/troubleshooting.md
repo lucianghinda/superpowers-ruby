@@ -30,6 +30,72 @@
 - Cause: Rails 7.2 — `show_exceptions` no longer accepts booleans
 - Fix: `config.action_dispatch.show_exceptions = :all` (was `true`) or `:none` (was `false`)
 
+**"ActiveRecord::MissingRequiredOrderError"**
+- Cause: Rails 8.1 `raise_on_missing_required_finder_order_columns`. `#first`/`#last`/`#second` on a relation with no `order`, where the model has no `implicit_order_column`, `query_constraints`, or `primary_key` to fall back on
+- Fix: Add an explicit `order`, or set `implicit_order_column` on the model. Models with a normal primary key are unaffected — if this fires, the model genuinely has no deterministic ordering
+- Note: This lands as many failures at once, not one. Enable the flag alone in `new_framework_defaults_8_1.rb` and treat the failure list as your work queue
+
+**"ActionController::Redirecting::UnsafeRedirectError"**
+- Cause: Rails 8.1 `action_on_path_relative_redirect = :raise`. `redirect_to "example.com"` has no leading slash
+- Fix: Add the leading `/`. To stage it, set `:log` (the previous default) or `:notify` and clear the logs first
+
+**Rendered JSON suddenly contains raw `<`, `>`, `&`**
+- Cause: Rails 8.1 `escape_json_responses = false`
+- Fix: Expected and safe for JSON consumers. Only a problem if you interpolate rendered JSON into an HTML `<script>` block — fix those sites, or set `escape_json_responses = true` explicitly
+
+**HTML assertions fail on a missing `autocomplete="off"`**
+- Cause: Rails 8.1 `remove_hidden_field_autocomplete = true`
+- Fix: Update the fixture. The attribute is intentionally gone from `form_tag`, `token_tag`, `method_tag`, and `button_to` hidden fields
+
+**"NoMethodError" on a `:sucker_punch` queue adapter**
+- Cause: Rails 8.1 removed the built-in SuckerPunch adapter
+- Fix: `gem 'sucker_punch', '>= 3.2'` — it ships its own adapter
+
+**Deprecation warning about the `:sidekiq` adapter**
+- Cause: Rails 8.1 deprecated the built-in Sidekiq adapter. It still works on 8.1; removal is in 8.2
+- Fix: `gem 'sidekiq', '>= 7.3.3'`. No config change needed — the gem registers the adapter
+
+**Huge unexplained `db/schema.rb` diff after the first migrate**
+- Cause: Rails 8.1 sorts table columns alphabetically in `schema.rb`
+- Fix: Expected. Commit the regeneration on its own so it does not bury real changes. Note that this is reverted in 8.2, so a second large diff is coming — or switch to `structure.sql` if exact column order matters
+
+## Active Storage / libvips (CVE-2026-66066)
+
+**App fails to boot complaining about the libvips version**
+- Cause: From 8.1.3.1 / 8.0.5.1 / 7.2.3.2, Active Storage disables libvips "unfuzzed" loaders. libvips `< 8.13` cannot block them at all, so Rails refuses to boot rather than run unsecurable
+- Fix: Upgrade **system** libvips to `>= 8.13` — this is not a gem, so update the Dockerfile or base image, not the Gemfile. Verify with `vips --version`
+- No workaround exists below 8.13 other than removing libvips entirely. Apps that declared `ruby-vips` only for image analysis can drop it from the Gemfile
+
+**BMP / ICO / PSD variants raise after upgrading**
+- Cause: Those loaders are among the unfuzzed operations now blocked
+- Fix: Remove those content types from `variable_content_types` and provide a fallback for existing attachments. There is no way to re-enable them safely
+
+**Want to fix the vulnerability without upgrading Rails**
+- Fix: With libvips `>= 8.13` present, set the `VIPS_BLOCK_UNTRUSTED` environment variable (libvips reads it at init). With `ruby-vips >= 2.2.1`, call `Vips.block_untrusted(true)` from an initializer. Both are stopgaps — upgrade Rails
+- If the app ran an affected version while accepting untrusted uploads, rotate `secret_key_base`, the master key and everything `credentials.yml.enc` decrypts, Active Storage service credentials, database credentials, and third-party tokens. Rotating `secret_key_base` expires sessions, signed/encrypted cookies, signed global IDs, and Active Storage URLs
+
+## Rails 8.2 Preparation Issues (Unreleased)
+
+**Cached Active Record objects unreadable after upgrading**
+- Cause: Rails 8.2 removed the 6.1 marshalling format. Apps that never call `load_defaults`, or call it with 6.1 or lower, are implicitly on it
+- Fix: **Before** upgrading, set `config.active_record.marshalling_format_version = 7.1` on 8.1, deploy, then flush or expire every cache holding marshalled AR objects
+
+**A `not_<value>` enum scope returns more rows than before**
+- Cause: Rails 8.2 negative enum scopes now include records where the column is `nil`
+- Fix: Add `.where.not(column: nil)` where `nil` should stay excluded. Audit scopes feeding deletion, billing, or notification logic first — this change is silent
+
+**"FrozenError" from `Mime::Type.register` or `DependencyTracker.register_tracker`**
+- Cause: Rails 8.2 freezes both registries after initialization
+- Fix: Move registration into an initializer (`config/initializers/mime_types.rb`) so it runs before the app finishes initializing
+
+**Tests fail on literal record ids under MySQL**
+- Cause: Rails 8.2 resets parallel test databases with `DELETE` instead of `TRUNCATE`, so auto-increment counters no longer reset. `SKIP_TEST_DATABASE_TRUNCATE` has no effect
+- Fix: Remove the env var from CI and stop asserting on literal ids
+
+**An endpoint starts returning JSON where it used to return HTML**
+- Cause: Rails 8.2 `strict_accept_header = true`. A client sending `Accept: application/json, */*` now gets JSON rather than defaulting to HTML
+- Fix: Enable the flag alone and exercise every content-negotiated route before shipping
+
 ## Asset Pipeline Issues (Rails 8.0)
 
 **Assets returning 404 after upgrade**
@@ -95,6 +161,18 @@
 **No output for a version**
 - Cause: That patch version may not exist as a tag in the Rails repo
 - Fix: Run `./scripts/fetch-changelogs.sh --list-versions` to see available tags. Use the nearest minor version.
+
+**"does not look like a valid version number" for a security release**
+- Cause: Security releases carry a fourth segment (`8.1.3.1`). The script accepts 2-4 segments
+- Fix: If this still errors, the script predates the fix — the validation regex should be `^[0-9]+\.[0-9]+(\.[0-9]+){0,2}$`
+
+**Most components return a 3-line section for a security release**
+- Cause: Expected. A security release touches one component; the rest get a version-bump stub
+- Fix: None. For `8.1.3.1` only `activestorage` has real content — that IS the CVE-2026-66066 fix
+
+**Want the unreleased (next version) changelogs**
+- Fix: `./scripts/fetch-changelogs.sh main ./changelogs`. Main's CHANGELOGs contain only entries merged since the last release branch was cut, so they describe the next version (currently 8.2). They have no `## Rails X.Y.Z` headers at all — the file ends with a "Please check X-Y-stable for previous changes" pointer
+- Treat everything it returns as provisional. Entries get reverted before release; the alphabetical `schema.rb` sorting from 8.1 is one that already was
 
 ## Attribution
 

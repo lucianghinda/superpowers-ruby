@@ -56,8 +56,12 @@ gem list <gemname>
 | solid_queue | N/A | N/A | N/A | N/A | N/A | N/A | 1.0+ | 1.0+ |
 | sucker_punch | 2.0+ | 2.1+ | 2.1+ | 2.1+ | 2.1+ | 3.0+ | 3.0+ | 3.2+ [^2] |
 
-[^1]: Rails 8.1 removed the built-in Sidekiq adapter. Requires sidekiq gem 7.3.3+ which ships its own adapter.
-[^2]: Rails 8.1 removed the built-in SuckerPunch adapter. Requires sucker_punch gem 3.2+ which ships its own adapter.
+[^1]: Rails 8.1 **deprecated** the built-in Sidekiq adapter (it still works, with a warning); Rails 8.2 **removes** it. Upgrade to sidekiq 7.3.3+, which ships its own adapter — this clears the 8.1 warning and unblocks 8.2.
+[^2]: Rails 8.1 **removed** the built-in SuckerPunch adapter. Requires sucker_punch gem 3.2+, which ships its own adapter. Unlike Sidekiq, this one breaks immediately on 8.1.
+
+Rails is systematically handing queue adapters back to the gems that own them. Rails 8.2
+deprecates the built-in `resque`, `delayed_job`, `backburner`, `sneakers`, and `queue_classic`
+adapters too — see the Rails 8.2 notes below.
 
 ---
 
@@ -155,6 +159,33 @@ Note: `pagy` tracks Rails releases closely — each major pagy version tends to 
 
 ---
 
+## Rails 8.2 Dependency Changes (Unreleased)
+
+Rails 8.2 is `8.2.0.alpha` on `main`. These are dependency-level changes rather than
+per-gem version bumps, so they do not fit the tables above. Every one can be handled
+while still on 8.1. Re-verify against `main` before acting.
+
+| Dependency | Change | Action |
+|---|---|---|
+| **Ruby** | Floor raised from 3.2.0 to **3.3.1** | Bump Ruby on 8.1 first, get a green suite, then move Rails |
+| **SQLite** | Minimum **3.35.0** (needs `RETURNING`) | Check `sqlite3 --version` in dev, CI, and production |
+| **PostgreSQL** | Minimum **10.0** | Check `SELECT version()` everywhere; CI images lag |
+| **libvips** | Minimum **8.13** — Rails raises at boot below this | System library. Already required on 8.1.3.1+ (CVE-2026-66066) |
+| **ruby-vips** | Minimum **2.2.1** | Needed for `Vips.block_untrusted(true)` |
+| **image_processing** | 2.0 no longer pulls in a backend | Declare `gem "ruby-vips"` or `gem "mini_magick"` explicitly |
+| **redis** → **redis-client** | `RedisCacheStore` reimplemented on `redis-client >= 0.28.0` instead of `redis >= 4.0.1` | Add `redis-client`; review custom connection blocks and `DEFAULT_REDIS_OPTIONS` |
+| **sidekiq** | Built-in adapter removed | `>= 7.3.3` (required — do it on 8.1) |
+| **resque** | Built-in adapter deprecated | `>= 3.0` |
+| **delayed_job** | Built-in adapter deprecated | `>= 4.2.0` |
+| **backburner**, **sneakers**, **queue_classic** | Built-in adapters deprecated | Use a gem-supplied adapter, or move to Solid Queue / GoodJob |
+
+The queue-adapter deprecations are the ones worth planning around. If a gem has no
+maintained ActiveJob adapter of its own, the deprecation is effectively a migration notice.
+
+---
+
 ## Attribution
 
-Based on the OmbuLabs.ai / FastRuby.io gem-compatibility reference (MIT licensed), extended to cover Rails 8.0 and 8.1.
+Based on the OmbuLabs.ai / FastRuby.io gem-compatibility reference (MIT licensed), extended to cover Rails 8.0, 8.1, and 8.2.
+
+Last verified against rails/rails on **2026-08-13**.
