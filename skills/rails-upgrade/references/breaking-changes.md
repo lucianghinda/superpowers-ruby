@@ -1,7 +1,10 @@
 # Breaking Changes by Rails Version
 
-Reference document for the Rails upgrade skill. Covers all breaking changes from Rails 5.2 through 8.1.
+Reference document for the Rails upgrade skill. Covers all breaking changes from Rails 5.2 through 8.2.
 Organized by version pair with HIGH / MEDIUM / LOW priority tables.
+
+Last verified against rails/rails on **2026-08-13**. Rails 8.2 is unreleased
+(`8.2.0.alpha` on `main`) — treat that section as a moving target and re-verify before use.
 
 ---
 
@@ -15,7 +18,8 @@ Organized by version pair with HIGH / MEDIUM / LOW priority tables.
 | 7.0 → 7.1 | 12 | 5 | 4 | 3 | Medium | 2-4 hours |
 | 7.1 → 7.2 | 38 | 5 | 12 | 21 | Hard | 4-8 hours |
 | 7.2 → 8.0 | 13 | 5 | 4 | 4 | Very Hard | 6-12 hours |
-| 8.0 → 8.1 | 8 | 3 | 3 | 2 | Easy | 2-4 hours |
+| 8.0 → 8.1 | ~28 | 9 | 11 | 8 | Medium | 1-2 days |
+| 8.1 → 8.2 (unreleased) | ~25 | 7 | 12 | 6 | Medium | 1-2 days |
 
 ---
 
@@ -242,33 +246,118 @@ The replacement of Sprockets with Propshaft as the default asset pipeline is the
 
 ## Rails 8.0 → 8.1
 
-**Difficulty: Easy**
-**Time estimate: 2-4 hours**
+**Difficulty: Medium**
+**Time estimate: 1-2 days**
 
-A relatively small set of changes. The most significant for most apps is the SSL configuration change (force_ssl and assume_ssl commented out by default, assuming Kamal handles SSL) and the database.yml pool rename.
+Not the trivial hop it first appears. The single most disruptive change is
+`ActiveRecord::MissingRequiredOrderError` — under `load_defaults 8.1`, calling `#first`,
+`#last`, or `#second` on an unordered relation whose model has no order columns now raises.
+That pattern is everywhere in older codebases and in test suites. Beyond that, 8.1 is a heavy
+deprecation release: several APIs deprecated here are removed in 8.2, so clearing them now is
+the cheapest time to do it.
+
+**Target the newest patch, `8.1.3.1` or later.** `8.1.3.1` (2026-07-29) fixes
+CVE-2026-66066, a critical Active Storage arbitrary-file-read / RCE. See the "Active Storage
+libvips hardening" entry below — the fix has real behavior consequences.
 
 ### HIGH Priority
 
 | # | Change | Impact | Files Affected | Action Required |
 |---|---|---|---|---|
-| 1 | **force_ssl and assume_ssl commented out in production config** | New Rails 8.1 apps have `force_ssl` and `assume_ssl` commented out by default. The assumption is that Kamal or another reverse proxy handles SSL termination. Upgrading apps that had these settings enabled may find them silently disabled after running `rails app:update` and accepting the new config. | `config/environments/production.rb` | If NOT using Kamal or a proxy that handles SSL: explicitly uncomment and set `config.force_ssl = true` and `config.assume_ssl = true` as appropriate. If using Kamal with SSL offloading: the commented-out defaults are correct. Review your deployment topology before accepting this change. |
-| 2 | **pool: renamed to max_connections: in database.yml** | The `pool:` key in `config/database.yml` is renamed to `max_connections:`. Using the old `pool:` key generates a deprecation warning in 8.1 and will be removed in a future version. | `config/database.yml` | Rename every `pool:` key to `max_connections:` across all database configuration sections (development, test, production, and any named databases). Example: `pool: 5` becomes `max_connections: 5`. |
-| 3 | **bundler-audit integration** | Rails 8.1 adds `bundler-audit` as a default security scanning tool, integrated into the CI pipeline and `bin/` scripts. If your app has a custom CI setup, the new `bin/brakeman` and `bin/bundler-audit` scripts may conflict or need integration. | `Gemfile`, `bin/`, CI configuration (`.github/workflows/`, etc.) | Add `gem 'bundler-audit', require: false` to the Gemfile (development/test group). Run `bundle exec bundler-audit check --update` to verify your dependencies. Integrate into CI if desired. |
+| 1 | **Order-dependent finders raise without an order** | With `config.active_record.raise_on_missing_required_finder_order_columns = true` (a `load_defaults 8.1` default), `#first`, `#last`, `#second`, etc. raise `ActiveRecord::MissingRequiredOrderError` when called on a relation with no `order` values **and** the model has no `implicit_order_column`, `query_constraints`, or `primary_key` to fall back on. The old non-raising behavior is deprecated and the escape-hatch config is removed in 8.2. | `app/**/*.rb`, `lib/**/*.rb`, `test/**/*.rb`, `spec/**/*.rb` — anywhere `.first`/`.last` is called on a relation | Add an explicit `order` to each affected call, or set `implicit_order_column` on the model. Models backed by a normal primary key are unaffected. Enable the flag in `new_framework_defaults_8_1.rb` first and run the full suite — this surfaces as a wave of test failures, not a boot error. |
+| 2 | **force_ssl and assume_ssl commented out in production config** | New Rails 8.1 apps have `force_ssl` and `assume_ssl` commented out by default. The assumption is that Kamal or another reverse proxy handles SSL termination. Upgrading apps that had these settings enabled may find them silently disabled after running `rails app:update` and accepting the new config. | `config/environments/production.rb` | If NOT using Kamal or a proxy that handles SSL: explicitly uncomment and set `config.force_ssl = true` and `config.assume_ssl = true` as appropriate. If using Kamal with SSL offloading: the commented-out defaults are correct. Review your deployment topology before accepting this change. |
+| 3 | **Active Storage libvips hardening (CVE-2026-66066)** | Shipped in 8.1.3.1 / 8.0.5.1 / 7.2.3.2. Active Storage now disables libvips "unfuzzed" loaders and savers. Two consequences: **(a)** Rails **raises during boot** if libvips is older than 8.13, because older libvips cannot block those operations at all; **(b)** variant transformation of **BMP, ICO, and PSD** now raises. | `Gemfile.lock` (`ruby-vips`), system libvips, `config/storage.yml`, anywhere `variable_content_types` is configured | Upgrade system libvips to `>= 8.13` **before** the Rails upgrade, or the app will not boot. Bump `ruby-vips` to `>= 2.2.1`. Remove BMP/ICO/PSD from `variable_content_types` and plan a fallback for existing attachments of those types. If the app was exposed to untrusted uploads on an affected version, rotate `secret_key_base`, the master key, and every credential reachable from the process. |
+| 4 | **Built-in SuckerPunch adapter removed; built-in Sidekiq adapter deprecated** | `:sucker_punch` no longer resolves to a built-in adapter — it is **removed** in 8.1. `:sidekiq` still works in 8.1 but emits a deprecation warning; the built-in Sidekiq adapter is **removed in 8.2**. Getting these two confused is easy: only SuckerPunch breaks now. | `config/application.rb`, `config/environments/*.rb`, `Gemfile` | Upgrade to `sucker_punch >= 3.2` (ships its own adapter) — required now. Upgrade to `sidekiq >= 7.3.3` (ships its own adapter) — required before 8.2, and it silences the warning today. No config change is needed beyond the gem upgrade; the gems register the adapters. |
+| 5 | **Path-relative redirects raise** | `config.action_controller.action_on_path_relative_redirect = :raise` is a `load_defaults 8.1` default. `redirect_to "example.com"` or `redirect_to "@attacker.com"` (relative URLs with no leading slash) now raise `ActionController::Redirecting::UnsafeRedirectError`. This closes an open-redirect vector. | `app/controllers/**/*.rb` | Audit every `redirect_to` taking a dynamic or string-built target. Ensure paths start with `/`. To stage the change, set `:log` (the previous default) or `:notify` and watch the logs before flipping to `:raise`. |
+| 6 | **JSON responses no longer escape HTML entities and line separators** | `config.action_controller.escape_json_responses = false` and `config.active_support.escape_js_separators_in_json = false` are `load_defaults 8.1` defaults. `render json: { key: "  <>&" }` previously emitted `{"key":"  <>&"}` and now emits the raw characters. Safe in modern browsers (ECMAScript 2019 made U+2028/U+2029 valid in string literals) but **not** safe if you interpolate rendered JSON directly into an HTML `<script>` block or into a non-browser consumer that assumed escaping. | `app/controllers/**/*.rb`, `app/views/**/*.erb` embedding JSON, any downstream JSON consumer | Grep views for JSON interpolated into `<script>` tags. If any exist, either fix them to use `json_escape`/`safe` serialization or keep `escape_json_responses = true` explicitly. |
+| 7 | **Azure Active Storage service removed** | `config.active_storage.service = :azure` and `ActiveStorage::Service::AzureStorageService` are removed. | `config/storage.yml`, `config/environments/*.rb` | Switch to S3-compatible storage, Google Cloud Storage, or the Disk service, or extract the Azure adapter into a separate gem. **Migrate existing blobs before switching services.** |
+| 8 | **Semicolon query string separator removed** | `?key=value;other=value2` is no longer parsed. Only `&` is accepted. Semicolons now land inside the preceding parameter's value instead of splitting. | `app/controllers/**/*.rb`, any URLs generated or consumed by the app | Search for semicolons in query string generation. Replace `;` separators with `&`. If consuming external APIs that use semicolons, parse them yourself. |
+| 9 | **`schema.rb` table columns sorted alphabetically** | Active Record now dumps table columns alphabetically rather than in creation order, so schema dumps stop flip-flopping with migration order. The first `db:migrate` after the upgrade rewrites `schema.rb` with a very large, mostly-noise diff. **This was reverted on `main` for 8.2** because alphabetical ordering produces improper production tables under `db:prepare` — so expect a second large diff when you reach 8.2. | `db/schema.rb` | Regenerate `schema.rb` in a dedicated commit so the reordering does not hide real changes. Apps that need exact column order preserved should switch to `config.active_record.schema_format = :sql` and use `structure.sql`. |
 
 ### MEDIUM Priority
 
 | # | Change | Impact | Files Affected | Action Required |
 |---|---|---|---|---|
-| 4 | **Semicolon query string separator removed** | `?key=value;other=value2` (semicolon-separated query strings) is no longer parsed. Only `&` is accepted as the query string separator. Semicolons in query strings now produce unexpected parameter parsing. | `app/controllers/**/*.rb`, any URLs generated or consumed by the app | Search for semicolons in query string generation. Replace `;` separators with `&`. If consuming external APIs that use semicolons, add a parsing adapter. |
-| 5 | **Built-in ActiveJob adapters for Sidekiq and SuckerPunch removed** | `config.active_job.queue_adapter = :sidekiq` and `:sucker_punch` no longer work with the built-in adapters. These adapters have been moved to the respective gems. | `config/application.rb`, `config/environments/*.rb` | Upgrade to `sidekiq >= 7.3.3` (which includes its own ActiveJob adapter) or `sucker_punch >= 3.2`. No configuration changes are required beyond the gem upgrade; the adapter registration is handled by the gem. |
-| 6 | **Active Storage Azure service removed** | `config.active_storage.service = :azure` and the `ActiveStorage::Service::AzureStorageService` class are removed. | `config/storage.yml`, `config/environments/*.rb` | If using Azure Blob Storage: switch to S3-compatible storage, Google Cloud Storage, or the Disk service. Alternatively, extract the Azure adapter into a separate gem. Migrate existing blobs before switching services. |
+| 10 | **`pool:` renamed to `max_connections:` in database.yml** | 8.1 introduces `keepalive`, `max_age`, and `min_connections` connection options and renames `pool` to `max_connections` for consistency. **There is no change to default behavior and `pool:` continues to work as an alias** — this is a rename to adopt, not a break to race. | `config/database.yml` | Rename every `pool:` key to `max_connections:` across all sections and named databases. Do it in one pass so the vocabulary matches the new `min_connections`/`max_age`/`keepalive` neighbours. |
+| 11 | **`ActiveSupport::Multibyte::Chars` and `String#mb_chars` deprecated** | Both emit deprecation warnings in 8.1 and are **removed in 8.2**. Most `mb_chars` calls are vestigial — Ruby strings have been encoding-aware since 1.9. | `app/**/*.rb`, `lib/**/*.rb` | Delete the `.mb_chars` call. `"foo".mb_chars.upcase` becomes `"foo".upcase`. For genuinely locale-sensitive casing, use `ActiveSupport::Inflector` or the `unicode` gem. |
+| 12 | **`config.active_support.to_time_preserves_timezone` deprecated** | The config itself is deprecated; `:zone` (the `load_defaults 7.2` value) becomes the only behavior. Apps still on the old `to_time` semantics get warnings. | `config/application.rb`, `config/initializers/new_framework_defaults_*.rb` | Set the value to `:zone`, verify `to_time` behavior across the suite, then remove the config line entirely. |
+| 13 | **`ActiveSupport::Configurable` deprecated** | The mixin is deprecated. Gems and app code that `include ActiveSupport::Configurable` will warn. | `app/**/*.rb`, `lib/**/*.rb`, `Gemfile.lock` | Replace with plain `class_attribute` declarations or a `Struct`/`Data` config object. Check third-party gems too — some still include it. |
+| 14 | **`ActiveRecord::Base.signed_id_verifier_secret` deprecated** | Deprecated in favor of `Rails.application.message_verifiers`, which centralizes verifier configuration and rotation. | `config/initializers/**/*.rb`, `app/models/**/*.rb` | Move the secret into `Rails.application.message_verifiers`, or set `signed_id_verifier` directly. Rotating this invalidates existing signed IDs — plan for links already in the wild. |
+| 15 | **`insert_all` / `upsert_all` with unpersisted records in associations deprecated** | Calling these through an association whose owner (or whose collection) holds unpersisted records now warns; the behavior was ambiguous about what gets written. | `app/models/**/*.rb`, `app/**/*.rb` | Persist the owner first, or call `insert_all` on the model class with explicit foreign keys rather than through the association. |
+| 16 | **`WITH`, `WITH RECURSIVE`, and `DISTINCT` with `update_all` deprecated** | Combining CTEs or `DISTINCT` with `update_all` produced database-dependent and often wrong SQL. Now deprecated. | `app/models/**/*.rb`, `lib/**/*.rb` | Resolve the relation to a set of ids first (`.pluck(:id)`), then `where(id: ids).update_all(...)`. |
+| 17 | **ActiveJob `enqueue_after_transaction_commit` symbol values removed** | `:never`, `:always`, and `:default` are no longer accepted for `ActiveJob::Base.enqueue_after_transaction_commit`, and the global `config.active_job.enqueue_after_transaction_commit` was removed in 8.1. (Note: 8.2 **restores** the global config as a plain boolean.) | `config/application.rb`, `config/environments/*.rb`, `app/jobs/**/*.rb` | Remove the symbol values. Set the per-job boolean `self.enqueue_after_transaction_commit = true/false` where you need to override. On 8.2 you can move back to the global config. |
+| 18 | **Custom ActiveJob serializers must expose a public `#klass`** | Serializers that defined `klass` as `private` now warn and will break. | `app/serializers/**/*.rb`, `lib/**/*.rb`, `config/initializers/active_job.rb` | Move `def klass` above the `private` keyword in every custom `ActiveJob::Serializers::ObjectSerializer` subclass. |
+| 19 | **Action Text Trix APIs deprecated** | `ActionText::TrixAttachment`, `ActionText::Attachments::TrixConversion`, `ActionText::Attachable#to_trix_content_attachment_partial_path`, `ActionText::RichText#to_trix_html`, and `ActionText::Content#to_trix_html` are all deprecated as Action Text decouples from Trix. | `app/models/**/*.rb`, `app/views/**/*.erb`, `app/helpers/**/*.rb` | Replace `to_trix_html` with `to_s` / `to_rendered_html`. If you subclass or monkey-patch `TrixAttachment`, plan a rewrite against the editor-agnostic API. |
+| 20 | **`render` with `:renderable` objects lacking keyword args deprecated** | Objects passed as `renderable:` that define `#render_in` without accepting keyword arguments now warn. | `app/controllers/**/*.rb`, `app/models/**/*.rb`, component classes | Change `def render_in(view_context)` to `def render_in(view_context, **options, &block)`. |
+| 21 | **bundler-audit integration** | Rails 8.1 adds `bundler-audit` as a default security scanning tool with a `bin/bundler-audit` script and a CI step. Apps with custom CI may need to wire it in. | `Gemfile`, `bin/`, `.github/workflows/` | Add `gem 'bundler-audit', require: false` to the development/test group. Run `bundle exec bundler-audit check --update`. Add the step to CI. |
 
 ### LOW Priority
 
 | # | Change | Impact | Files Affected | Action Required |
 |---|---|---|---|---|
-| 7 | **MySQL unsigned integer types deprecated in migrations** | Using `t.integer :column, unsigned: true` in migrations generates a deprecation warning. Unsigned integer support in MySQL through Active Record is being phased out. | `db/migrate/**/*.rb` | For new migrations, use a check constraint instead: `t.integer :column` plus `add_check_constraint :table, "column >= 0", name: "non_negative_column"`. Existing columns are unaffected at the database level. |
-| 8 | **.gitignore updated with /config/*.key pattern** | The generated `.gitignore` now includes `/config/*.key` to prevent accidental credential key commits. If your `.gitignore` does not include this pattern, credential keys could be committed. | `.gitignore` | Add `/config/*.key` to `.gitignore` if not present. Verify that `config/credentials.yml.enc` is tracked but `config/master.key` and any environment-specific `.key` files are not. |
+| 22 | **New Action View defaults: `render_tracker` and hidden-field autocomplete** | `config.action_view.render_tracker = :ruby` switches template dependency tracking from regex scanning to a real Ruby parser (more accurate; may change which templates get recompiled). `config.action_view.remove_hidden_field_autocomplete = true` drops `autocomplete="off"` from hidden fields generated by `form_tag`, `token_tag`, `method_tag`, and `button_to`. | `app/views/**/*`, HTML snapshot tests | Adopt both. If HTML-diffing tests fail on the missing `autocomplete` attribute, update the fixtures rather than reverting the flag. |
+| 23 | **Assorted Active Support removals** | Removed: passing a `Time` to `Time#since`; `Benchmark.ms`; adding a `Time` to an `ActiveSupport::TimeWithZone`; `to_time` preserving the system local time. | `app/**/*.rb`, `lib/**/*.rb` | Grep for `Benchmark.ms` and replace with `ActiveSupport::Benchmark.realtime(:float_millis)`. The `Time` arithmetic removals raise clearly; fix at the call site. |
+| 24 | **Assorted Active Record removals** | Removed: the `:retries` option for the SQLite3 adapter; the `:unsigned_float` and `:unsigned_decimal` column methods for MySQL. | `config/database.yml`, `db/migrate/**/*.rb` | Delete `retries:` from the SQLite3 config (use `timeout:`). Replace `t.unsigned_float` / `t.unsigned_decimal` with `t.float` / `t.decimal` plus a check constraint. |
+| 25 | **Assorted Action Pack removals** | Removed: skipping over leading brackets in parameter names; using semicolons as a query string separator (see HIGH #8); routing one route to multiple paths. `config.action_dispatch.ignore_leading_brackets` is deprecated. | `config/routes.rb`, `config/application.rb` | Split any route declared with an array of paths into separate `get`/`post` declarations. Remove `ignore_leading_brackets`. |
+| 26 | **Railties removals: `bin/rake stats`, `STATS_DIRECTORIES`, `rails/console/methods.rb`** | `rake stats` is gone (use `bin/rails stats`), the `STATS_DIRECTORIES` constant is removed, and the deprecated `rails/console/methods.rb` file no longer exists. | `lib/tasks/**/*.rake`, `config/initializers/**/*.rb`, CI scripts | Replace `rake stats` invocations with `bin/rails stats`. Register extra directories via `Rails::CodeStatistics.register_directory` instead of `STATS_DIRECTORIES`. |
+| 27 | **MySQL `unsigned: true` in migrations deprecated** | `t.integer :column, unsigned: true` warns. Unsigned integer support through Active Record is being phased out. Distinct from the `:unsigned_float`/`:unsigned_decimal` removals in #24. | `db/migrate/**/*.rb` | For new migrations use `t.integer :column` plus `add_check_constraint :table, "column >= 0", name: "non_negative_column"`. Existing columns are unaffected at the database level. |
+| 28 | **.gitignore updated with `/config/*.key`** | The generated `.gitignore` now includes `/config/*.key` to prevent accidental credential key commits. | `.gitignore` | Add `/config/*.key` if not present. Verify `config/credentials.yml.enc` is tracked but `config/master.key` and environment-specific `.key` files are not. |
+
+---
+
+## Rails 8.1 → 8.2 (UNRELEASED)
+
+**Difficulty: Medium**
+**Time estimate: 1-2 days**
+**Status: `8.2.0.alpha` on `main` — not released. Do not upgrade production to this.**
+
+This section exists so you can (a) triage 8.1 deprecation warnings that name 8.2 as the
+removal version and (b) prepare on 8.1, where every fix below already works. Re-verify against
+`main` before acting — content here changes, and one 8.1 feature has already been reverted.
+
+The theme is cleanup: 8.1's deprecations become removals, minimum versions rise across the
+board (Ruby, SQLite, PostgreSQL, libvips), and CSRF protection moves toward the
+`Sec-Fetch-Site` header.
+
+### HIGH Priority
+
+| # | Change | Impact | Files Affected | Action Required |
+|---|---|---|---|---|
+| 1 | **Ruby 3.3.1+ required** | `required_ruby_version` on `main` is `>= 3.3.1`, up from `>= 3.2.0` in 8.0/8.1. Apps on Ruby 3.2 cannot move past 8.1. | `Gemfile`, `.ruby-version`, `Dockerfile`, CI configuration | Upgrade Ruby to 3.3.1 minimum (3.4 recommended) **while still on Rails 8.1**, and get a green suite there, before touching the Rails version. Debugging a Ruby bump and a Rails bump at once is how upgrades stall. |
+| 2 | **Active Record 6.1 marshalling format removed** | If the app still uses `active_record.marshalling_format_version = 6.1` — which happens implicitly when `config.load_defaults` is absent or set to 6.1 or lower — cached Active Record objects written in the old format become unreadable. | `config/application.rb`, `config/initializers/new_framework_defaults_*.rb`, cache stores | **Must be done before upgrading.** Set `config.active_record.marshalling_format_version = 7.1` on 8.1, deploy, then flush or let expire every cache holding marshalled AR objects. Only then upgrade. |
+| 3 | **Negative enum scopes now include `nil` records** | `Book.not_published` previously returned only records with a non-nil, non-published status. It now also returns records where the enum column is `nil`. Silent result-set change — no error, just more rows. | `app/models/**/*.rb`, `app/controllers/**/*.rb`, anywhere a `not_*` enum scope is used | Audit every `not_<value>` enum scope usage. Where `nil` should stay excluded, add `.where.not(status: nil)` explicitly. Pay particular attention to scopes feeding deletion, billing, or notification logic. |
+| 4 | **`raise_on_missing_required_finder_order_columns` config removed** | The 8.1 escape hatch is gone; order-dependent finders on unordered relations always raise `ActiveRecord::MissingRequiredOrderError`. | `config/application.rb`, `app/**/*.rb`, `test/**/*.rb`, `spec/**/*.rb` | Finish the work from 8.0 → 8.1 HIGH #1 while on 8.1, then delete the config line. |
+| 5 | **Built-in Sidekiq ActiveJob adapter removed** | `config.active_job.queue_adapter = :sidekiq` no longer resolves to a Rails-supplied adapter. Deprecated in 8.1, removed here. | `config/application.rb`, `config/environments/*.rb`, `Gemfile` | Upgrade to `sidekiq >= 7.3.3`, which registers its own adapter. Do this on 8.1 — it also clears the 8.1 deprecation warning. |
+| 6 | **Database minimums raised: SQLite 3.35.0, PostgreSQL 10.0** | SQLite 3.35.0 introduced `RETURNING`, which the adapter has relied on since 7.1 for reading auto-populated columns after `INSERT`. PostgreSQL below 10.0 is no longer supported; `supports_pgcrypto_uuid?` is deprecated because `gen_random_uuid()` has shipped since PG 9.4. | `Dockerfile`, `docker-compose.yml`, CI service definitions, production database | Check `sqlite3 --version` and `SELECT version()` on every environment — CI images and developer laptops drift behind production. Upgrade before the Rails bump. |
+| 7 | **libvips unfuzzed loaders disabled (also in 8.1.3.1)** | Requires libvips `>= 8.13` and ruby-vips `>= 2.2.1`. Rails raises at boot below those versions. Variant transformation of BMP, ICO, and PSD raises. | System libvips, `Gemfile.lock`, `variable_content_types` config | Already required if you are on 8.1.3.1+. See 8.0 → 8.1 HIGH #3. |
+
+### MEDIUM Priority
+
+| # | Change | Impact | Files Affected | Action Required |
+|---|---|---|---|---|
+| 8 | **Alphabetical `schema.rb` column sorting reverted** | 8.1's alphabetical column ordering is reverted on `main` because it "creates improper production tables when using `db:prepare`". Column order returns to creation order. | `db/schema.rb` | Expect another large, mostly-noise `schema.rb` diff. Regenerate in a dedicated commit. If you switched to `structure.sql` because of the 8.1 change, you can stay there — nothing forces a move back. |
+| 9 | **`protect_from_forgery` without a strategy deprecated** | Calling `protect_from_forgery` with no `:with` option warns. The default changes from `:null_session` to `:exception` under `load_defaults 8.2`. Apps that silently relied on `:null_session` will start raising `ActionController::InvalidCrossOriginRequest`. | `app/controllers/application_controller.rb`, `app/controllers/**/*.rb` | Make the strategy explicit at every call site, or set `config.action_controller.default_protect_from_forgery_with`. Decide deliberately: `:exception` is correct for HTML apps; API endpoints relying on `:null_session` need it spelled out. |
+| 10 | **`Sec-Fetch-Site` header CSRF strategy** | New `config.action_controller.forgery_protection_verification_strategy`. `:header_only` rejects requests lacking a same-origin/same-site `Sec-Fetch-Site` header, with no authenticity-token fallback. `:header_or_legacy_token` (the pre-8.2 default) checks the header first and falls back to tokens, logging the fallback. | `config/application.rb`, `config/environments/*.rb` | Run on `:header_or_legacy_token` first and watch the fallback logs. Only move to `:header_only` once the logs are quiet — old browsers and non-browser clients have no `Sec-Fetch-Site` header and will be rejected outright. |
+| 11 | **More built-in ActiveJob adapters deprecated** | `resque`, `delayed_job`, `backburner`, `sneakers`, and `queue_classic` built-in adapters are all deprecated, following the Sidekiq/SuckerPunch pattern. | `config/application.rb`, `config/environments/*.rb`, `Gemfile` | Upgrade each gem to a version shipping its own adapter (`resque >= 3.0`, `delayed_job >= 4.2.0`). For gems with no maintained adapter, plan a move to Solid Queue or GoodJob. |
+| 12 | **`ActiveSupport::Multibyte::Chars` removed; `require_dependency` deprecated** | `Multibyte::Chars` (deprecated in 8.1) is now removed. `require_dependency` is deprecated with removal targeted at Rails 9.0 — it has been a no-op under Zeitwerk for years. | `app/**/*.rb`, `lib/**/*.rb` | Delete every remaining `.mb_chars` call and every `require_dependency` call. Under Zeitwerk, `require_dependency` does nothing useful. |
+| 13 | **`RedisCacheStore` reimplemented on `redis-client`** | Now depends on `redis-client >= 0.28.0` instead of `redis >= 4.0.1`. `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS` is deprecated. Custom connection setup passing `redis` gem objects or options may not carry over. | `Gemfile`, `config/environments/*.rb`, `config/initializers/cache.rb` | Add `redis-client` to the Gemfile. Review any custom `redis:` connection blocks or option hashes passed to the cache store. Replace `DEFAULT_REDIS_OPTIONS` references. |
+| 14 | **Active Storage: ImageProcessing 2.0 and processing option changes** | ImageProcessing 2.0 requires `ruby-vips` or `mini_magick` to be declared **explicitly** in your Gemfile — it no longer pulls one in. `preprocessed: true` is deprecated in favor of `process: :immediately`. New `config.active_storage.analyze` (`:immediately` / `:later` / `:lazily`) makes attachment metadata available during validation. | `Gemfile`, `app/models/**/*.rb` | Add `gem "ruby-vips"` (or `mini_magick`) explicitly. Replace `preprocessed: true` with `process: :immediately`. `analyze: :immediately` is the new default — it moves metadata extraction before validation, which changes timing for large uploads. |
+| 15 | **Adapter option deprecations targeting Rails 9.0** | MySQL `strict` in `database.yml` is deprecated (use `variables: { sql_mode: "..." }`). PostgreSQL `schema_order` is deprecated (use `schema_search_path`). PostgreSQL `insert_returning` / `use_insert_returning?` are deprecated (use `prefetch_primary_key?`). `Column#auto_populated?` becomes `auto_populated_on_insert?`. `write_attribute(:id, value)` for primary keys is deprecated in favor of `#id=`. | `config/database.yml`, `app/models/**/*.rb`, `lib/**/*.rb` | Mechanical renames. Do them as warnings appear — all have Rails 9.0 removal targets, so there is time, but no reason to wait. |
+| 16 | **Action View: ERB handler is private API; `safe_join` drops the `$,` fallback** | `ActionView::Template::Handlers::ERB` is now private API — configure via `ActionView::Base` instead. `safe_join` no longer falls back to the `$,` global when no separator is passed. Registering a `DependencyTracker` after initialization will raise `FrozenError` in a future version. | `config/initializers/**/*.rb`, `app/helpers/**/*.rb`, `lib/**/*.rb` | Move ERB configuration (trim mode, escape handling) onto `ActionView::Base`. Pass separators to `safe_join` explicitly. Move `DependencyTracker.register_tracker` calls into an initializer that runs before the app is initialized. |
+| 17 | **Action Pack internal constants deprecated** | `Mime::SET`, `Mime::LOOKUP`, and `Mime::EXTENSION_LOOKUP` are deprecated (use `Mime.symbols`, `Mime::Type.lookup`, `Mime::Type.lookup_by_extension`). `ActionController::Renderers::RENDERERS` is deprecated (use `add_renderer` / `remove_renderer` / `Renderers.all`). `ActionDispatch::Cookies::HTTP_HEADER` is deprecated (use `Rack::SET_COOKIE`). Registering MIME types after initialization will raise `FrozenError`. Middleware `#args` no longer includes keyword arguments — inspect `#kwargs` separately. | `config/initializers/mime_types.rb`, `config/initializers/**/*.rb`, `lib/**/*.rb`, custom middleware | Move all `Mime::Type.register` calls into `config/initializers/mime_types.rb` so they run before the registry freezes. Swap the deprecated constants for the public methods. Update middleware-introspection code to read `#kwargs`. |
+| 18 | **MySQL parallel test databases reset with DELETE, not TRUNCATE** | Auto-increment counters no longer reset between parallel test runs, and `SKIP_TEST_DATABASE_TRUNCATE` has no effect. Tests asserting on specific record ids will fail. | `test/**/*.rb`, `spec/**/*.rb`, CI configuration | Remove `SKIP_TEST_DATABASE_TRUNCATE` from CI. Fix tests that assert on literal id values — they were always fragile. |
+| 19 | **New framework defaults worth staging** | `strict_accept_header = true` (a request with `Accept: application/json, */*` now returns JSON instead of always defaulting to HTML). `raise_on_invalid_time_zone_parse = true` (`TimeZone#parse("foobar")` raises instead of returning `nil`). `postgresql_adapter_decode_bytea` / `decode_money` (raw queries return binary Strings and BigDecimals rather than UTF-8 Strings). `X-XSS-Protection` dropped from `default_headers`. `rescue_from_event_backtrace = :array`. | `config/initializers/new_framework_defaults_8_2.rb` | `strict_accept_header` is the risky one — it can flip the format of existing endpoints for clients sending `*/*`. Enable it alone and exercise every content-negotiated route. `raise_on_invalid_time_zone_parse` will surface user-input parsing that silently returned `nil`. |
+
+### LOW Priority
+
+| # | Change | Impact | Files Affected | Action Required |
+|---|---|---|---|---|
+| 20 | **Frozen string literals in generated apps** | New apps get a `config/bootsnap.rb` enabling frozen string literals, with `.rubocop.yml` configured to match. Not applied to existing apps on upgrade. | `config/bootsnap.rb`, `.rubocop.yml` | Optional adoption. If you opt in, expect `FrozenError` from any code mutating string literals in place. |
+| 21 | **Console behavior changes** | Query cache is now **off** by default in `bin/rails console` (pass `--query-cache` to enable). The console is wrapped with the executor by default (disable with `-w` / `--skip_executor`). A startup banner shows the Rails logo, version, and rotating tips (`RAILS_TIPS=false` to hide). | Developer workflow, console scripts | No action required. Console one-liners that relied on implicit query caching may run more queries. |
+| 22 | **`Rails.app` and configuration accessors** | `Rails.app` is a new alias for `Rails.application`. New `Rails.app.creds` (combined ENV + encrypted credentials + `.env`), `Rails.app.envs`, `Rails.app.dotenvs`, and `Rails.app.revision` (from `ENV["REVISION"]`, a `REVISION` file, or git). | `config/**/*.rb`, `app/**/*.rb` | Optional adoption. `Rails.app.revision` is genuinely useful for error-reporter release tagging. |
+| 23 | **`bin/rails query` command** | New read-only database query command supporting Active Record expressions, raw SQL, JSON output, and schema introspection. | Developer workflow | Optional. Useful in production consoles where you want a read-only guarantee. |
+| 24 | **Action Cable configuration namespace move** | `ActionCable::Server::Configuration` moved to `ActionCable::Configuration`. The old constant remains as an alias. Origin checking now respects `X-Forwarded-Host` behind reverse proxies. | `config/initializers/action_cable.rb`, `config/cable.yml` | No action required. The `X-Forwarded-Host` fix may resolve existing origin-check failures behind a proxy. |
+| 25 | **Action Mailbox ingress hardening; `Mail::Address.wrap` deprecated** | Malformed Mailgun, Postmark, SendGrid, and Mandrill payloads now return `422 Unprocessable Content` (and `401` for malformed Mailgun signatures) instead of raising. `Mail::Address.wrap` is deprecated as unused. | `app/mailboxes/**/*.rb`, ingress monitoring | No action required. Error-rate dashboards will show 4xx where they previously showed 5xx — update alert thresholds. |
 
 ---
 
@@ -278,26 +367,31 @@ A relatively small set of changes. The most significant for most apps is the SSL
 
 Upgrading across all versions involves cumulative exposure to all the changes above. The total effort is substantially more than the sum of individual hops because some changes interact.
 
-#### Top 10 Most Impactful Changes (by breadth of codebase affected)
+#### Top 12 Most Impactful Changes (by breadth of codebase affected)
 
 | Rank | Change | Version | Why It Is High Impact |
 |---|---|---|---|
 | 1 | Transaction-aware jobs | 7.2 | Silent behavior change. Jobs that previously ran before a transaction committed now run after. Race conditions disappear, but timing-sensitive code breaks silently. |
 | 2 | Sprockets → Propshaft | 8.0 | Complete asset pipeline replacement. Apps with complex Sprockets manifests require full rewrite of asset loading strategy. |
 | 3 | Zeitwerk autoloader | 6.0 | Every file in the app must follow strict naming conventions. Large legacy codebases with informal naming patterns require widespread renaming. |
-| 4 | cache_classes → enable_reloading (inverted boolean) | 7.1 | Every environment file must be updated. The inverted boolean means a copy-paste error produces the opposite of the intended behavior. Easy to overlook in a large diff. |
-| 5 | Multi-database config restructure | 8.0 | `config/database.yml` structure changes significantly for apps adopting Solid gems. |
-| 6 | show_exceptions changed to symbol | 7.2 | Breaks boot in all three environment configs if not updated. Error is clear but affects multiple files. |
-| 7 | ActiveRecord::Base.connection deprecated | 7.2 | This pattern appears in many places: initializers, lib code, custom middleware, Rake tasks. |
-| 8 | Webpacker → Hotwire/Turbo/ImportMaps | 7.0 | Complete JavaScript pipeline replacement. All Turbolinks event handlers, data attributes, and JavaScript events must be updated. |
-| 9 | Rails.application.secrets removed | 7.2 | Complete API removal. Every reference to secrets must be migrated to credentials. |
-| 10 | pool → max_connections | 8.1 | Simple rename, but affects every database configuration section and is easy to miss in multi-database setups. |
+| 4 | `MissingRequiredOrderError` on unordered finders | 8.1 | `.first` / `.last` on an unordered relation is one of the most common patterns in Rails code and test suites. Surfaces as a broad wave of failures rather than a single error. |
+| 5 | cache_classes → enable_reloading (inverted boolean) | 7.1 | Every environment file must be updated. The inverted boolean means a copy-paste error produces the opposite of the intended behavior. Easy to overlook in a large diff. |
+| 6 | Multi-database config restructure | 8.0 | `config/database.yml` structure changes significantly for apps adopting Solid gems. |
+| 7 | show_exceptions changed to symbol | 7.2 | Breaks boot in all three environment configs if not updated. Error is clear but affects multiple files. |
+| 8 | ActiveRecord::Base.connection deprecated | 7.2 | This pattern appears in many places: initializers, lib code, custom middleware, Rake tasks. |
+| 9 | Webpacker → Hotwire/Turbo/ImportMaps | 7.0 | Complete JavaScript pipeline replacement. All Turbolinks event handlers, data attributes, and JavaScript events must be updated. |
+| 10 | Rails.application.secrets removed | 7.2 | Complete API removal. Every reference to secrets must be migrated to credentials. |
+| 11 | libvips unfuzzed loaders disabled (CVE-2026-66066) | 8.1.3.1 | Hard boot failure below libvips 8.13, plus BMP/ICO/PSD variants start raising. Infrastructure work, not code work — easy to miss until deploy. |
+| 12 | Negative enum scopes include `nil` | 8.2 | Silent result-set change with no error. Extra rows flow into whatever the scope feeds — deletion, billing, notifications. |
 
 #### Hardest Single-Hop Upgrades
 
 1. **7.2 → 8.0** (Very Hard): Asset pipeline replacement, Solid gems defaults, multi-database restructure all at once.
 2. **6.1 → 7.0** (Hard): JavaScript pipeline replacement (Webpacker → Hotwire), `legacy_connection_handling` removal, Ruby 2.7 requirement.
 3. **5.2 → 6.0** (Hard): Zeitwerk autoloader requires renaming files and removing `require_dependency` throughout the codebase.
+
+The 8.x hops are each Medium: individually manageable, but 8.0 → 8.1 is routinely
+under-estimated because the official upgrading guide lists only one item for it.
 
 #### Recommended Multi-Hop Strategy
 
@@ -310,10 +404,30 @@ For apps on Rails 5.2 upgrading to 8.1:
 7.0 → 7.1  (fix cache_classes inversion, lib/ autoloading)
 7.1 → 7.2  (fix secrets, show_exceptions, transaction job behavior)
 7.2 → 8.0  (migrate asset pipeline, evaluate Solid gems)
-8.0 → 8.1  (rename pool, fix SSL config)
+8.0 → 8.1  (fix unordered finders, path-relative redirects, libvips/CVE, rename pool)
 ```
 
+Land on the newest patch of the target series (currently `8.1.3.1`), not the `.0`.
+
 Each hop should be: upgrade gem → run `rails app:update` (reviewing each change) → run test suite → fix deprecation warnings → commit before proceeding to next hop.
+
+#### Preparing for 8.2 while on 8.1
+
+Rails 8.2 is unreleased, but its whole HIGH-priority list can be cleared from 8.1:
+
+```
+On Rails 8.1, in this order:
+1. Bump Ruby to >= 3.3.1                          (blocks everything else)
+2. Set marshalling_format_version = 7.1, flush caches
+3. Upgrade sidekiq to >= 7.3.3
+4. Upgrade SQLite to >= 3.35.0, PostgreSQL to >= 10.0 (all environments, incl. CI)
+5. Upgrade libvips to >= 8.13, ruby-vips to >= 2.2.1
+6. Fix every unordered .first/.last, then drop the escape-hatch config
+7. Audit not_<value> enum scopes for nil handling
+```
+
+Doing this work on 8.1 means the eventual 8.2 bump is a version-number change plus a
+`schema.rb` regeneration, not a project.
 
 ---
 
@@ -334,6 +448,12 @@ Use this section when you see a specific error or symptom and need to find the r
 | `fixture_path` deprecation warning | Singular → plural | 7.2 | Use `fixture_paths` as an array |
 | `args:` unknown keyword in mailer test | Test syntax change | 7.2 | Rename `args:` to `params:` |
 | `serialize :column` raises error | Serialize requires type | 7.2 | Add `type: Array` or `coder: JSON` |
+| `ActiveRecord::MissingRequiredOrderError` | Unordered `#first`/`#last` | 8.1 | Add an explicit `order`, or set `implicit_order_column` on the model |
+| `UnsafeRedirectError` on a relative redirect | Path-relative redirects raise | 8.1 | Give the path a leading `/`, or stage via `action_on_path_relative_redirect = :log` |
+| Rendered JSON contains raw `<`, `>`, `&` | `escape_json_responses = false` | 8.1 | Expected. Only a problem if JSON is interpolated into a `<script>` tag |
+| HTML assertions fail on missing `autocomplete="off"` | `remove_hidden_field_autocomplete` | 8.1 | Update the fixture; the attribute is intentionally gone |
+| Mailer/job test fails on a literal record id | MySQL parallel DB reset uses DELETE | 8.2 | Auto-increment no longer resets — stop asserting on literal ids |
+| A `not_<value>` enum scope returns extra rows | Negative enum scopes include `nil` | 8.2 | Add `.where.not(column: nil)` where `nil` should stay excluded |
 
 ### "My app raises on boot with..."
 
@@ -345,7 +465,13 @@ Use this section when you see a specific error or symptom and need to find the r
 | `NoMethodError: secrets` | `secrets` removed | 7.2 | Migrate to `credentials` |
 | `ArgumentError: render nothing: true` | Option removed | 6.0 | Use `head :ok` |
 | `legacy_connection_handling` error | Option removed | 7.0 | Remove the config key |
-| `pool:` deprecation warning | Key renamed | 8.1 | Rename to `max_connections:` |
+| Boot fails complaining about libvips version | Unfuzzed loaders cannot be blocked below libvips 8.13 | 8.1.3.1 | Upgrade system libvips to `>= 8.13`. No config workaround exists below that version |
+| `NoMethodError` on a `:sucker_punch` queue adapter | Built-in adapter removed | 8.1 | Upgrade to `sucker_punch >= 3.2` |
+| `NoMethodError` on a `:sidekiq` queue adapter | Built-in adapter removed | 8.2 | Upgrade to `sidekiq >= 7.3.3` (do this on 8.1 to clear the warning early) |
+| `NameError: ActiveSupport::Multibyte::Chars` | Class removed | 8.2 | Delete the `.mb_chars` call |
+| `FrozenError` from `Mime::Type.register` | MIME registry frozen after init | 8.2 | Move registration into `config/initializers/mime_types.rb` |
+| Unreadable/garbled cached Active Record objects | 6.1 marshalling format removed | 8.2 | Set `marshalling_format_version = 7.1` and flush caches **before** upgrading |
+| Ruby version error on `bundle install` | Ruby floor raised to 3.3.1 | 8.2 | Bump Ruby while still on 8.1 |
 
 ### "I can't deploy because..."
 
@@ -357,7 +483,12 @@ Use this section when you see a specific error or symptom and need to find the r
 | Assets 404 in production | Propshaft migration incomplete | 8.0 | Complete migration from Sprockets; remove `//= require` directives |
 | Webpacker compile errors | Webpacker removed | 7.0 | Migrate to Import Maps or jsbundling-rails |
 | ActiveStorage files not loading | Azure service removed | 8.1 | Migrate to S3, GCS, or Disk service |
-| Sidekiq jobs not enqueuing | Built-in adapter removed | 8.1 | Upgrade to `sidekiq >= 7.3.3` |
+| SuckerPunch jobs not enqueuing | Built-in adapter removed | 8.1 | Upgrade to `sucker_punch >= 3.2` |
+| Sidekiq jobs not enqueuing | Built-in adapter removed | 8.2 | Upgrade to `sidekiq >= 7.3.3` |
+| App will not boot after a security patch | libvips `< 8.13` cannot block unfuzzed loaders | 8.1.3.1 | Upgrade system libvips (rebuild the container image — this is not a gem) |
+| BMP / ICO / PSD variants raise | Unfuzzed libvips loaders disabled | 8.1.3.1 | Remove those types from `variable_content_types` and provide a fallback |
+| Ruby version rejected at deploy | Ruby floor raised to 3.3.1 | 8.2 | Bump Ruby, `.ruby-version`, Dockerfile, and CI together |
+| SQLite or PostgreSQL version rejected | Minimums raised to 3.35.0 / 10.0 | 8.2 | Upgrade the database in every environment, CI included |
 
 ### "I see deprecation warnings about..."
 
@@ -368,9 +499,29 @@ Use this section when you see a specific error or symptom and need to find the r
 | `fixture_path` | Singular → plural | 7.2 | Use `fixture_paths` as array |
 | `ActiveRecord::Base.connection` | Method deprecated | 7.2 | Use `with_connection` |
 | `serialize :column` without type | Type required | 7.2 | Add `type:` or `coder:` |
-| `pool:` in database.yml | Key renamed | 8.1 | Rename to `max_connections:` |
 | `query_constraints` | Deprecated | 7.2 | Use `foreign_key` |
 | `unsigned: true` in migration | Deprecated | 8.1 | Use a check constraint instead |
+| Unordered finder / missing order columns | Behavior deprecated ahead of 8.2 | 8.1 | Add an explicit `order` or `implicit_order_column` |
+| `String#mb_chars` / `Multibyte::Chars` | Deprecated 8.1, removed 8.2 | 8.1 | Delete the call — plain String methods are encoding-aware |
+| `to_time_preserves_timezone` | Config deprecated | 8.1 | Set `:zone`, verify, then remove the line |
+| `ActiveSupport::Configurable` | Deprecated | 8.1 | Use `class_attribute` or a plain config object |
+| `signed_id_verifier_secret` | Deprecated | 8.1 | Use `Rails.application.message_verifiers` |
+| `insert_all`/`upsert_all` on unpersisted association | Deprecated | 8.1 | Persist the owner first, or insert on the class with explicit FKs |
+| `WITH` / `DISTINCT` with `update_all` | Deprecated | 8.1 | `pluck(:id)` first, then `where(id: ids).update_all` |
+| Custom job serializer `#klass` is private | Deprecated | 8.1 | Move `def klass` above `private` |
+| `to_trix_html` / `TrixAttachment` | Deprecated | 8.1 | Use `to_s` / the editor-agnostic Action Text API |
+| `render_in` without keyword args | Deprecated | 8.1 | `def render_in(view_context, **options, &block)` |
+| `protect_from_forgery` without a strategy | Deprecated | 8.2 | Pass `with:` explicitly, or set `default_protect_from_forgery_with` |
+| `require_dependency` | Deprecated, removal in 9.0 | 8.2 | Delete it — it is a no-op under Zeitwerk |
+| MySQL `strict` in database.yml | Deprecated, removal in 9.0 | 8.2 | Use `variables: { sql_mode: "..." }` |
+| PostgreSQL `schema_order` | Deprecated, removal in 9.0 | 8.2 | Use `schema_search_path` |
+| `Mime::SET` / `LOOKUP` / `EXTENSION_LOOKUP` | Deprecated | 8.2 | Use `Mime.symbols` / `Mime::Type.lookup` / `lookup_by_extension` |
+| `write_attribute(:id, value)` | Deprecated | 8.2 | Use the model's `#id=` |
+| `preprocessed: true` on an attachment | Deprecated | 8.2 | Use `process: :immediately` |
+
+Note on `pool:` in `database.yml`: Rails 8.1 renamed `pool` to `max_connections` alongside
+the new `keepalive`, `max_age`, and `min_connections` options. Default behavior is unchanged
+and `pool:` continues to work — adopt the new name for consistency, but it is not a break.
 
 ---
 

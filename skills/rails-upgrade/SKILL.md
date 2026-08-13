@@ -11,6 +11,24 @@ This skill provides a systematic workflow for upgrading Rails applications, cove
 
 **Announce at start:** "I'm using the rails-upgrade skill to guide this upgrade."
 
+## Release Landscape
+
+Last verified against rails/rails on **2026-08-13**.
+
+| Series | Latest patch | Status |
+|--------|-------------|--------|
+| 8.1.x  | 8.1.3.1     | Current stable |
+| 8.0.x  | 8.0.5.1     | Maintained (bug + security) |
+| 7.2.x  | 7.2.3.2     | Security fixes only |
+| 8.2    | 8.2.0.alpha (`main`) | In development — see the 8.1 → 8.2 sections in the references |
+
+Anything older than 7.2 is unsupported upstream and receives no security patches.
+
+**Always resolve the exact target patch, never just the minor.** Check
+`https://rubygems.org/api/v1/versions/rails.json` (or `gem list rails --remote --all`)
+and target the newest patch in the target series. Upgrading to `8.1.0` when `8.1.3.1`
+exists leaves known CVEs unpatched.
+
 ## Ruby Version Compatibility
 
 | Rails     | Minimum Ruby | Recommended Ruby |
@@ -19,7 +37,12 @@ This skill provides a systematic workflow for upgrading Rails applications, cove
 | 6.0–6.1   | 2.5.0       | 2.7+            |
 | 7.0–7.1   | 2.7.0       | 3.1+            |
 | 7.2       | 3.1.0       | 3.3+            |
-| 8.0+      | 3.2.0       | 3.3+            |
+| 8.0–8.1   | 3.2.0       | 3.3+            |
+| 8.2 (unreleased) | 3.3.1 | 3.4+            |
+
+Rails 8.2 raises the Ruby floor to **3.3.1**. Apps on Ruby 3.2 must bump Ruby
+before they can move past 8.1. Upgrade Ruby first, on the current Rails version,
+so the two changes are debugged separately.
 
 ## The Workflow
 
@@ -29,8 +52,42 @@ This skill provides a systematic workflow for upgrading Rails applications, cove
 2. Read `config/application.rb` to find the current `config.load_defaults` value
 3. Check `.ruby-version` or `Gemfile` for the Ruby version — verify against the compatibility table above
 4. Confirm the target version with the user if not specified
-5. If the jump spans more than one minor version, plan sequential hops (e.g., 7.0 → 8.0 requires 7.0 → 7.1 → 7.2 → 8.0)
-6. Output: version assessment summary (current Rails, current Ruby, target Rails, required Ruby, upgrade path)
+5. Resolve the target to an exact patch version (see "Release Landscape" above) — the newest patch in the target series
+6. If the jump spans more than one minor version, plan sequential hops (e.g., 7.0 → 8.0 requires 7.0 → 7.1 → 7.2 → 8.0)
+7. Output: version assessment summary (current Rails, current Ruby, target Rails patch, required Ruby, upgrade path)
+
+---
+
+### Step 0.5: Active Storage / libvips Security Gate
+
+```
+HARD GATE: Applies to every app that uses Active Storage with the vips variant processor.
+CVE-2026-66066 (critical) — arbitrary file read and possible RCE via crafted image uploads.
+Fixed in 8.1.3.1, 8.0.5.1, 7.2.3.2.
+```
+
+An app is affected when both are true:
+
+- `config.active_storage.variant_processor` is `:vips` — this is the default from
+  `load_defaults 7.0` onward and no later default changed it
+- It accepts image uploads from untrusted users
+
+Checks to run before the upgrade:
+
+1. Grep for `variant_processor` in `config/` — absence means the `:vips` default applies
+2. Check the installed libvips: `vips --version`. **Rails raises at boot on libvips < 8.13**
+   after the fix, because older libvips cannot block unfuzzed operations at all.
+   Upgrading libvips is a prerequisite, not a follow-up.
+3. Check `ruby-vips` in `Gemfile.lock` — needs `>= 2.2.1` for the in-process
+   `Vips.block_untrusted(true)` path
+4. Warn the user: variant generation for **BMP, ICO, and PSD** now raises. If the app
+   serves variants of those types, remove them from `variable_content_types` and plan
+   a fallback before deploying.
+5. If the app was running an affected version and exposed to untrusted uploads, tell the
+   user to rotate `secret_key_base`, the master key, and every credential reachable from
+   the app process. Upgrading closes the hole; it does not un-leak a secret.
+
+Source: [GHSA-xr9x-r78c-5hrm](https://github.com/advisories/GHSA-xr9x-r78c-5hrm)
 
 ---
 
@@ -195,9 +252,31 @@ Use dual-boot (`next_rails` gem) when:
 - The team needs to ship features during the upgrade
 
 Skip dual-boot when:
-- Difficulty is EASY or MEDIUM (8.0 → 8.1, 7.0 → 7.1)
+- Difficulty is EASY or MEDIUM (7.0 → 7.1, 8.0 → 8.1)
 - The codebase is small (<10k LOC)
 - Breaking changes are few and localized
+
+---
+
+## Upgrading to Rails 8.2 (Unreleased)
+
+Rails 8.2 is `8.2.0.alpha` on `main` and has **not been released**. Do not upgrade a
+production app to it. The 8.1 → 8.2 material in the references exists for two reasons:
+
+1. **Rails 8.1 deprecation warnings name 8.2 as the removal version.** You cannot correctly
+   triage an 8.1 deprecation without knowing what 8.2 does with it.
+2. **Preparing on 8.1 is free.** Every 8.2 removal has a fix that works on 8.1.
+
+When a user asks about 8.2, say it is unreleased, then use the references to list what to
+clear while still on 8.1. Re-verify against `main` before relying on any of it — unreleased
+content changes, and at least one 8.1 feature (alphabetical `schema.rb` columns) was already
+reverted on `main`.
+
+To refresh the 8.2 picture:
+
+```bash
+./scripts/fetch-changelogs.sh main ./changelogs
+```
 
 See `references/dual-boot-guide.md` for setup.
 
@@ -207,14 +286,14 @@ See `references/dual-boot-guide.md` for setup.
 
 | File | Contents |
 |------|----------|
-| `references/breaking-changes.md` | Breaking changes by version pair (5.2+), HIGH/MEDIUM/LOW tables |
-| `references/deprecation-timeline.md` | When deprecations were introduced, warned, and removed |
+| `references/breaking-changes.md` | Breaking changes by version pair (5.2 → 8.2), HIGH/MEDIUM/LOW tables |
+| `references/deprecation-timeline.md` | When deprecations were introduced, warned, and removed (through 9.0 targets) |
 | `references/gem-compatibility.md` | ~50 popular gems with required versions per Rails release |
-| `references/load-defaults-guide.md` | Every load_defaults setting 5.2+, risk tiers, transition guidance |
+| `references/load-defaults-guide.md` | Every load_defaults setting 5.2 → 8.2, risk tiers, transition guidance |
 | `references/detection-patterns.md` | Grep/Glob patterns for code-level detection, organized by version pair |
 | `references/dual-boot-guide.md` | next_rails dual-boot setup, NextRails.next? patterns, CI config |
 | `references/troubleshooting.md` | Common upgrade errors and their solutions |
-| `scripts/fetch-changelogs.sh` | Fetches component CHANGELOGs from GitHub for any version |
+| `scripts/fetch-changelogs.sh` | Fetches component CHANGELOGs from GitHub for any version or `main` |
 
 Also cross-references:
 - `skills/rails-guides/references/upgrading_ruby_on_rails.md` — Official Rails upgrading guide (3,000+ lines)
