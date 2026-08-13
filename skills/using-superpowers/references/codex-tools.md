@@ -24,24 +24,24 @@ multi_agent = true
 
 This enables `spawn_agent`, `wait`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`.
 
-## Named agent dispatch
+## Subagent dispatch
 
-Claude Code skills reference named agent types like `superpowers-ruby:code-reviewer`.
 Codex does not have a named agent registry — `spawn_agent` creates generic agents
-from built-in roles (`default`, `explorer`, `worker`).
+from built-in roles (`default`, `explorer`, `worker`). These skills do not depend
+on one: every reviewer is a prompt template stored beside its skill, so dispatch
+is the same everywhere.
 
-When a skill says to dispatch a named agent type:
+When a skill says to dispatch a subagent with a prompt template:
 
-1. Find the agent's prompt file (e.g., `agents/code-reviewer.md` or the skill's
-   local prompt template like `code-quality-reviewer-prompt.md`)
-2. Read the prompt content
-3. Fill any template placeholders (`{BASE_SHA}`, `{WHAT_WAS_IMPLEMENTED}`, etc.)
-4. Spawn a `worker` agent with the filled content as the `message`
+1. Read the skill's prompt template (e.g. `requesting-code-review/code-reviewer.md`
+   or `subagent-driven-development/code-quality-reviewer-prompt.md`)
+2. Fill any template placeholders (`{BASE_SHA}`, `{WHAT_WAS_IMPLEMENTED}`, etc.)
+3. Spawn a `worker` agent with the filled content as the `message`
 
 | Skill instruction | Codex equivalent |
 |-------------------|------------------|
-| `Task tool (superpowers-ruby:code-reviewer)` | `spawn_agent(agent_type="worker", message=...)` with `code-reviewer.md` content |
-| `Task tool (general-purpose)` with inline prompt | `spawn_agent(message=...)` with the same prompt |
+| `Subagent (general-purpose)` with a prompt template | `spawn_agent(agent_type="worker", message=...)` with the filled template |
+| `Subagent (general-purpose)` with an inline prompt | `spawn_agent(message=...)` with the same prompt |
 
 ### Message framing
 

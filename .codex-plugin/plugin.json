@@ -25,6 +25,7 @@
     "workflows"
   ],
   "skills": "./skills/",
+  "hooks": {},
   "interface": {
     "displayName": "Superpowers (Ruby)",
     "shortDescription": "Ruby/Rails skills library for Codex",

@@ -15,8 +15,14 @@ Load plan, review critically, execute all tasks, report when complete.
 
 ## The Process
 
+### Step 0: Set Up an Isolated Workspace
+
+**REQUIRED before any task runs.** Use superpowers-ruby:using-git-worktrees to
+create an isolated workspace, or confirm you are already in one. Never start
+implementation on main/master without your human partner's explicit consent.
+
 ### Step 1: Load and Review Plan
-1. Read plan file
+1. Read plan file (written by superpowers-ruby:writing-plans)
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with your human partner before starting
 4. If no concerns: Create TodoWrite and proceed
@@ -62,9 +68,6 @@ After all tasks complete and verified:
 - Stop when blocked, don't guess
 - Never start implementation on main/master branch without explicit user consent
 
-## Integration
+## Alternative workflow
 
-**Required workflow skills:**
-- **superpowers-ruby:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
-- **superpowers-ruby:writing-plans** - Creates the plan this skill executes
-- **superpowers-ruby:finishing-a-development-branch** - Complete development after all tasks
+- **superpowers-ruby:subagent-driven-development** - Use instead of this skill when subagents are available

@@ -18,6 +18,30 @@ Task tool (general-purpose):
 
     [From implementer's report]
 
+    ## Scope: This Task's Diff
+
+    **Base:** [BASE_SHA]
+    **Head:** [HEAD_SHA]
+
+    ```bash
+    git diff --stat [BASE_SHA]..[HEAD_SHA]
+    git diff [BASE_SHA]..[HEAD_SHA]
+    ```
+
+    That diff is your evidence. Do not crawl the broader codebase. Inspect code
+    outside the diff only to evaluate a concrete risk you can name — one focused
+    check per named risk, and name both the risk and what you checked in your
+    report. Cross-cutting changes are legitimate named risks: if the diff changes
+    a function or API contract, or shared mutable state, checking the call sites
+    is the right method.
+
+    This is a task-scoped gate, not a merge review. A broader review of the whole
+    branch happens separately after all tasks are complete.
+
+    **Your review is read-only on this checkout.** Do not mutate the working
+    tree, the index, HEAD, or branch state in any way — no checkout, no stash,
+    no commit, no test-run side effects you don't clean up.
+
     ## CRITICAL: Do Not Trust the Report
 
     The implementer finished suspiciously quickly. Their report may be incomplete,

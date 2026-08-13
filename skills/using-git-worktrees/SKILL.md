@@ -213,7 +213,7 @@ You: I'm using the using-git-worktrees skill to set up an isolated workspace.
 [Run bin/rails db:test:prepare]
 [Run bin/rails test - 47 passing]
 
-Worktree ready at /Users/jesse/myproject/.worktrees/auth
+Worktree ready at ~/myproject/.worktrees/auth
 Tests passing (47 tests, 0 failures)
 Ready to implement auth feature
 ```

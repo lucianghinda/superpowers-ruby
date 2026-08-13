@@ -30,7 +30,8 @@ Task tool (general-purpose):
 
     Once you're clear on requirements:
     1. Implement exactly what the task specifies
-    2. Write tests (following TDD if task says to)
+    2. Write tests — if the task says to follow TDD, use the
+       superpowers-ruby:test-driven-development skill
     3. Verify implementation works
     4. Commit your work
     5. Self-review (see below)
@@ -103,6 +104,11 @@ Task tool (general-purpose):
     - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
     - What you implemented (or what you attempted, if blocked)
     - What you tested and test results
+    - **TDD Evidence** (REQUIRED if TDD was required for this task):
+      - RED: command run, the relevant failing output from before the
+        implementation, and why that failure was the expected one
+      - GREEN: command run and the relevant passing output after
+      - "I followed TDD" is not evidence. Paste the output.
     - Files changed
     - Self-review findings (if any)
     - Any issues or concerns
