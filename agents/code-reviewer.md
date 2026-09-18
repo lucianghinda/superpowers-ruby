@@ -29,8 +29,9 @@ When reviewing completed work, you will:
    - Assess scalability and extensibility considerations
 
 4. **Documentation and Standards**:
-   - Verify that code includes appropriate comments and documentation
-   - Check that file headers, function documentation, and inline comments are present and accurate
+   - Follow the project's own stance on comments and documentation. Where the project bans code comments, or keeps the reasoning for a change in commit messages and pull requests, their absence is not a finding, and neither is a missing file header or missing function documentation
+   - Where the project does document its code, check that what is there is accurate, current, and not merely restating what the code already says
+   - Report a comment that says what the code does rather than why, and one that has gone stale against the code beside it
    - Ensure adherence to project-specific coding standards and conventions
 
 5. **Issue Identification and Recommendations**:
