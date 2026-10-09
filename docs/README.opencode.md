@@ -1,31 +1,39 @@
-# Superpowers for OpenCode
+# RubyPowers for OpenCode
 
-Complete guide for using Superpowers with [OpenCode.ai](https://opencode.ai).
+Complete guide for using RubyPowers with [OpenCode.ai](https://opencode.ai).
 
 ## Installation
 
-Add superpowers to the `plugin` array in your `opencode.json` (global or project-level):
+Users upgrading from a pre-8.0.0 install should replace the old plugin line
+with the RubyPowers line below, clean up the old symlink or clone paths, and
+then follow these installation steps.
+
+Add RubyPowers to the `plugin` array in your `opencode.json` (global or project-level):
 
 ```json
 {
-  "plugin": ["superpowers-ruby@git+https://github.com/lucianghinda/superpowers-ruby.git"]
+  "plugin": ["rubypowers@git+https://github.com/lucianghinda/rubypowers.git"]
 }
 ```
 
 Restart OpenCode. The plugin auto-installs via Bun and registers all skills automatically.
 
-Verify by asking: "Tell me about your superpowers"
+Verify by asking: "Tell me about RubyPowers"
 
 ### Migrating from the old symlink-based install
 
-If you previously installed superpowers using `git clone` and symlinks, remove the old setup:
+If you previously installed superpowers-ruby using `git clone` and symlinks,
+remove the old setup. Also remove the RubyPowers legacy symlink name if present:
 
 ```bash
 # Remove old symlinks
+rm -f ~/.config/opencode/plugins/rubypowers.js
 rm -f ~/.config/opencode/plugins/superpowers.js
+rm -rf ~/.config/opencode/skills/rubypowers
 rm -rf ~/.config/opencode/skills/superpowers-ruby
 
 # Optionally remove the cloned repo
+rm -rf ~/.config/opencode/rubypowers
 rm -rf ~/.config/opencode/superpowers-ruby
 
 # Remove skills.paths from opencode.json if you added one for superpowers
@@ -46,7 +54,7 @@ use skill tool to list skills
 ### Loading a Skill
 
 ```
-use skill tool to load superpowers-ruby/brainstorming
+use skill tool to load rubypowers/brainstorming
 ```
 
 ### Personal Skills
@@ -74,17 +82,17 @@ description: Use when [condition] - [what it does]
 
 Create project-specific skills in `.opencode/skills/` within your project.
 
-**Skill Priority:** Project skills > Personal skills > Superpowers skills
+**Skill Priority:** Project skills > Personal skills > RubyPowers skills
 
 ## Updating
 
-Superpowers updates automatically when you restart OpenCode. The plugin is re-installed from the git repository on each launch.
+RubyPowers updates automatically when you restart OpenCode. The plugin is re-installed from the git repository on each launch.
 
 To pin a specific version, use a branch or tag:
 
 ```json
 {
-  "plugin": ["superpowers-ruby@git+https://github.com/lucianghinda/superpowers-ruby.git#v6.0.0"]
+  "plugin": ["rubypowers@git+https://github.com/lucianghinda/rubypowers.git#v8.0.0"]
 }
 ```
 
@@ -92,8 +100,8 @@ To pin a specific version, use a branch or tag:
 
 The plugin does two things:
 
-1. **Injects bootstrap context** via the `experimental.chat.system.transform` hook, adding superpowers awareness to every conversation.
-2. **Registers the skills directory** via the `config` hook, so OpenCode discovers all superpowers skills without symlinks or manual config.
+1. **Injects bootstrap context** via the `experimental.chat.system.transform` hook, adding RubyPowers awareness to every conversation.
+2. **Registers the skills directory** via the `config` hook, so OpenCode discovers all RubyPowers skills without symlinks or manual config.
 
 ### Tool Mapping
 
@@ -108,7 +116,7 @@ Skills written for Claude Code are automatically adapted for OpenCode:
 
 ### Plugin not loading
 
-1. Check OpenCode logs: `opencode run --print-logs "hello" 2>&1 | grep -i superpowers`
+1. Check OpenCode logs: `opencode run --print-logs "hello" 2>&1 | grep -i rubypowers`
 2. Verify the plugin line in your `opencode.json` is correct
 3. Make sure you're running a recent version of OpenCode
 
@@ -125,6 +133,6 @@ Skills written for Claude Code are automatically adapted for OpenCode:
 
 ## Getting Help
 
-- Report issues: https://github.com/lucianghinda/superpowers-ruby/issues
-- Main documentation: https://github.com/lucianghinda/superpowers-ruby
+- Report issues: https://github.com/lucianghinda/rubypowers/issues
+- Main documentation: https://github.com/lucianghinda/rubypowers
 - OpenCode docs: https://opencode.ai/docs/

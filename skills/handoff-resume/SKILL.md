@@ -93,5 +93,5 @@ If any sections contain `<!-- to be enriched by LLM -->` markers (from a hook-ge
 
 ## Pairs With
 
-- **superpowers-ruby:handoff** — Creates the handoff documents this skill resumes from
-- **superpowers-ruby:handoff-list** — View all available handoffs before choosing
+- **rubypowers:handoff** — Creates the handoff documents this skill resumes from
+- **rubypowers:handoff-list** — View all available handoffs before choosing

@@ -1,6 +1,6 @@
 # Testing Plugin Installs Across Platforms
 
-How to manually smoke-test a `superpowers-ruby` branch on each supported
+How to manually smoke-test a `rubypowers` branch on each supported
 platform. Use this when you have an unmerged branch (or a release candidate)
 and want to verify it loads and runs correctly before merging.
 
@@ -21,14 +21,14 @@ integration tests that exercise skills with real Claude sessions, see
 Define these once in your shell so the commands below stay copy-pasteable:
 
 ```bash
-# Path to your local clone of superpowers-ruby (the working tree)
-LOCAL_PATH="/Users/lucianghinda/Dropbox/workprojects/opensource/superpowers-ruby"
+# Path to your local clone of rubypowers (the working tree)
+LOCAL_PATH="/Users/lucianghinda/Dropbox/workprojects/opensource/rubypowers"
 
 # Branch name to test (use `main` for release-candidate testing)
 BRANCH="lg/rename-compatibility"
 
 # GitHub repo (owner/name)
-REPO="lucianghinda/superpowers-ruby"
+REPO="lucianghinda/rubypowers"
 ```
 
 ## What you're testing
@@ -38,10 +38,10 @@ look helps confirm the install actually picked up your branch:
 
 | Platform | Install artifact location |
 |---|---|
-| Claude Code | `~/.claude/plugins/cache/<marketplace>/superpowers-ruby/<version>/` |
-| Codex | `~/.codex/plugins/cache/<marketplace>/superpowers-ruby/<version>/` |
-| Copilot CLI | `~/.copilot/installed-plugins/_direct/superpowers-ruby/` (for direct installs) |
-| OpenCode | `~/.config/opencode/plugins/superpowers.js` (symlink to install location) |
+| Claude Code | `~/.claude/plugins/cache/<marketplace>/rubypowers/<version>/` |
+| Codex | `~/.codex/plugins/cache/<marketplace>/rubypowers/<version>/` |
+| Copilot CLI | `~/.copilot/installed-plugins/_direct/rubypowers/` (for direct installs) |
+| OpenCode | `~/.config/opencode/plugins/rubypowers.js` (symlink to install location) |
 
 The `_direct/` segment in Copilot's path is its marker for "installed from a
 non-marketplace source" — useful to confirm a local-path install did what you
@@ -58,7 +58,7 @@ Local-clone install is the reliable path for testing arbitrary branches.
 
 ```bash
 # 1. Remove the marketplace-installed copy
-/plugin uninstall superpowers-ruby@superpowers-ruby
+/plugin uninstall rubypowers@rubypowers
 
 # 2. Install from the working tree (pass the absolute path)
 /plugin install $LOCAL_PATH
@@ -69,18 +69,18 @@ Local-clone install is the reliable path for testing arbitrary branches.
 
 ### Verify
 
-- `/plugin` lists `superpowers-ruby` as installed.
-- The skills list shows each skill exactly **once**, with `superpowers-ruby:`
-  as the prefix and no `superpowers-ruby:superpowers-ruby:<x>` double-prefix.
-- Try invoking one of the renamed skills directly: `/superpowers-ruby:handoff`
+- `/plugin` lists `rubypowers` as installed.
+- The skills list shows each skill exactly **once**, with `rubypowers:`
+  as the prefix and no `rubypowers:rubypowers:<x>` double-prefix.
+- Try invoking one of the renamed skills directly: `/rubypowers:handoff`
   should run the skill, not error.
 
 ### Restore the marketplace install
 
 ```bash
-/plugin uninstall superpowers-ruby@superpowers-ruby
-/plugin marketplace add lucianghinda/superpowers-ruby
-/plugin install superpowers-ruby@superpowers-ruby
+/plugin uninstall rubypowers@rubypowers
+/plugin marketplace add lucianghinda/rubypowers
+/plugin install rubypowers@rubypowers
 ```
 
 ---
@@ -91,7 +91,7 @@ Local-clone install is the reliable path for testing arbitrary branches.
 
 ```bash
 # 1. Remove the existing direct-install (if any)
-copilot plugin uninstall superpowers-ruby
+copilot plugin uninstall rubypowers
 
 # 2. Install from the working tree
 copilot plugin install "$LOCAL_PATH"
@@ -108,18 +108,18 @@ from the clone:
 
 ```bash
 # Clone the branch into a temp dir
-git clone --branch "$BRANCH" "https://github.com/$REPO.git" /tmp/superpowers-ruby-test
+git clone --branch "$BRANCH" "https://github.com/$REPO.git" /tmp/rubypowers-test
 
-copilot plugin uninstall superpowers-ruby
-copilot plugin install /tmp/superpowers-ruby-test
+copilot plugin uninstall rubypowers
+copilot plugin install /tmp/rubypowers-test
 ```
 
 ### Verify
 
 In a Copilot session, type `/` and look at the slash-command list:
 
-- The skills appear as `/superpowers-ruby:<slug>` with a **single** prefix
-  (not `/superpowers-ruby:superpowers-ruby.<slug>` or similar).
+- The skills appear as `/rubypowers:<slug>` with a **single** prefix
+  (not `/rubypowers:rubypowers.<slug>` or similar).
 - No `Skill name must contain only letters, numbers, hyphens, underscores,
   dots, and spaces` errors are emitted at install time.
 - All previously-failing skills (`compound`, `compound-refresh`,
@@ -129,31 +129,31 @@ In a Copilot session, type `/` and look at the slash-command list:
 ### Restore the marketplace install
 
 ```bash
-copilot plugin uninstall superpowers-ruby
-copilot plugin marketplace add lucianghinda/superpowers-ruby
-copilot plugin install superpowers-ruby@superpowers-ruby
+copilot plugin uninstall rubypowers
+copilot plugin marketplace add lucianghinda/rubypowers
+copilot plugin install rubypowers@rubypowers
 
 # If you used the /tmp clone, clean it up
-rm -rf /tmp/superpowers-ruby-test
+rm -rf /tmp/rubypowers-test
 ```
 
 ---
 
 ## 3. Codex
 
-superpowers-ruby 7.0.0+ supports a native Codex plugin install. The legacy symlink-based
-install (`~/.agents/skills/superpowers-ruby` → clone) remains supported.
+rubypowers 7.0.0+ supports a native Codex plugin install. The legacy symlink-based
+install (`~/.agents/skills/rubypowers` → clone) remains supported.
 
 ### Test from local working tree (legacy symlink path — simplest)
 
 ```bash
 # 1. Save the current symlink target so you can restore it
-readlink ~/.agents/skills/superpowers-ruby
-# Example output: /Users/<you>/.codex/superpowers-ruby/skills
+readlink ~/.agents/skills/rubypowers
+# Example output: /Users/<you>/.codex/rubypowers/skills
 
 # 2. Re-point at the working tree
-rm ~/.agents/skills/superpowers-ruby
-ln -s "$LOCAL_PATH/skills" ~/.agents/skills/superpowers-ruby
+rm ~/.agents/skills/rubypowers
+ln -s "$LOCAL_PATH/skills" ~/.agents/skills/rubypowers
 
 # 3. Restart Codex (quit and relaunch the CLI)
 ```
@@ -162,28 +162,28 @@ ln -s "$LOCAL_PATH/skills" ~/.agents/skills/superpowers-ruby
 
 ```bash
 # 1. Remove the legacy symlink so it doesn't shadow the plugin install
-rm ~/.agents/skills/superpowers-ruby
+rm ~/.agents/skills/rubypowers
 
 # 2. Add the marketplace entry pointing at the branch
 codex plugin marketplace add "$REPO" --ref "$BRANCH"
 
 # 3. Install
-codex plugin add superpowers-ruby@superpowers-ruby
+codex plugin add rubypowers@rubypowers
 
 # 4. Confirm install location matches expectation
 codex plugin list
-ls ~/.codex/plugins/cache/superpowers-ruby/superpowers-ruby/
+ls ~/.codex/plugins/cache/rubypowers/rubypowers/
 
 # 5. Restart Codex
 ```
 
 ### Verify
 
-- For the **symlink path**: `~/.agents/skills/superpowers-ruby/` should
+- For the **symlink path**: `~/.agents/skills/rubypowers/` should
   contain all 34 skill subdirectories.
 - For the **plugin path**: `codex plugin list` shows
-  `superpowers-ruby@<version>`.
-- In a Codex session, ask: "use the handoff skill from superpowers-ruby" —
+  `rubypowers@<version>`.
+- In a Codex session, ask: "use the handoff skill from rubypowers" —
   it should find and run the skill.
 
 ### Restore afterwards
@@ -191,16 +191,16 @@ ls ~/.codex/plugins/cache/superpowers-ruby/superpowers-ruby/
 If you used the **symlink path**, restore the original symlink target:
 
 ```bash
-rm ~/.agents/skills/superpowers-ruby
-ln -s /Users/<you>/.codex/superpowers-ruby/skills ~/.agents/skills/superpowers-ruby
+rm ~/.agents/skills/rubypowers
+ln -s /Users/<you>/.codex/rubypowers/skills ~/.agents/skills/rubypowers
 # Restart Codex
 ```
 
 If you used the **plugin path**:
 
 ```bash
-codex plugin remove superpowers-ruby@superpowers-ruby
-codex plugin marketplace remove superpowers-ruby
+codex plugin remove rubypowers@rubypowers
+codex plugin marketplace remove rubypowers
 # Reinstall whichever production setup you were on (symlink or plugin)
 ```
 
@@ -214,13 +214,13 @@ so branch testing is configuration-only.
 ### Test from GitHub branch (cleanest — no clone step)
 
 Edit your `opencode.json` (global at `~/.config/opencode/opencode.json` or
-project-level) and change the existing `superpowers-ruby` plugin entry to
+project-level) and change the existing `rubypowers` plugin entry to
 pin the branch:
 
 ```json
 {
   "plugin": [
-    "superpowers-ruby@git+https://github.com/lucianghinda/superpowers-ruby.git#lg/rename-compatibility"
+    "rubypowers@git+https://github.com/lucianghinda/rubypowers.git#lg/rename-compatibility"
   ]
 }
 ```
@@ -235,7 +235,7 @@ The same plugin URL syntax accepts `file://` git URLs:
 ```json
 {
   "plugin": [
-    "superpowers-ruby@git+file:///Users/lucianghinda/Dropbox/workprojects/opensource/superpowers-ruby#lg/rename-compatibility"
+    "rubypowers@git+file:///Users/lucianghinda/Dropbox/workprojects/opensource/rubypowers#lg/rename-compatibility"
   ]
 }
 ```
@@ -251,18 +251,18 @@ bash tests/opencode/test-priority.sh
 ```
 
 The setup script copies the working tree into a temp `$HOME` and registers
-OpenCode's plugin pointer at `$TEST_HOME/.config/opencode/plugins/superpowers.js`.
+OpenCode's plugin pointer at `$TEST_HOME/.config/opencode/plugins/rubypowers.js`.
 
 ### Verify
 
 - Plugin loads in logs:
   ```bash
-  opencode run --print-logs "hello" 2>&1 | grep -i superpowers
+  opencode run --print-logs "hello" 2>&1 | grep -i rubypowers
   ```
 - Skill resolves via the OpenCode skill tool: ask OpenCode to
-  `use skill tool to load superpowers-ruby/handoff`.
+  `use skill tool to load rubypowers/handoff`.
 - The existing `tests/opencode/test-tools.sh` smoke test asserts that
-  `superpowers-ruby:brainstorming` and `superpowers-ruby:using-superpowers`
+  `rubypowers:brainstorming` and `rubypowers:using-rubypowers`
   load correctly — run it as the regression check.
 
 ### Restore afterwards
@@ -272,7 +272,7 @@ Edit `opencode.json` back to the production install (no `#<ref>` suffix):
 ```json
 {
   "plugin": [
-    "superpowers-ruby@git+https://github.com/lucianghinda/superpowers-ruby.git"
+    "rubypowers@git+https://github.com/lucianghinda/rubypowers.git"
   ]
 }
 ```
@@ -296,8 +296,8 @@ from the v7.0.0 bare-name change:
 - [ ] On **OpenCode**, `tests/opencode/test-tools.sh` and
       `tests/opencode/test-priority.sh` pass.
 - [ ] Slash-command invocation paths from the user's perspective are
-      unchanged (`/superpowers-ruby:handoff` still works).
-- [ ] Skill cross-references in skill bodies use `superpowers-ruby:<slug>`
+      unchanged (`/rubypowers:handoff` still works).
+- [ ] Skill cross-references in skill bodies use `rubypowers:<slug>`
       consistently (not legacy `superpowers:<slug>`).
 - [ ] Manifest version (`7.0.0`) is consistent across all 6 versioned
       manifests: `.claude-plugin/plugin.json`,

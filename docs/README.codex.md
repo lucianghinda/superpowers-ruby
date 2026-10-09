@@ -1,6 +1,6 @@
-# Superpowers for Codex
+# RubyPowers for Codex
 
-Guide for using Superpowers with OpenAI Codex via the native plugin system or
+Guide for using RubyPowers with OpenAI Codex via the native plugin system or
 legacy skill discovery.
 
 ## Quick Install
@@ -8,25 +8,41 @@ legacy skill discovery.
 Tell Codex:
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/superpowers-ruby/refs/heads/main/.codex/INSTALL.md
+Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/rubypowers/refs/heads/main/.codex/INSTALL.md
 ```
+
+## Migrating from superpowers-ruby
+
+Version 8.0.0 changes the plugin name and skill prefix from `superpowers-ruby`
+to `rubypowers`. Remove the old plugin before installing the new one:
+
+```bash
+codex plugin remove superpowers-ruby@superpowers-ruby
+codex plugin marketplace add lucianghinda/rubypowers
+codex plugin add rubypowers@rubypowers
+```
+
+If you installed through the old bootstrap, retain the existing
+`~/.codex/superpowers-ruby` clone and follow the old-bootstrap migration in
+[`.codex/INSTALL.md`](../.codex/INSTALL.md). New projects use `docs/rubypowers/`;
+existing projects with `docs/superpowers/` keep that folder and its documents.
 
 ## Plugin Installation
 
-superpowers-ruby 7.0.0+ ships with a Codex plugin manifest. For new installs,
+RubyPowers 8.0.0+ ships with a Codex plugin manifest. For new installs,
 use Codex's plugin system:
 
 ```bash
-codex plugin marketplace add lucianghinda/superpowers-ruby
-codex plugin add superpowers-ruby@superpowers-ruby
+codex plugin marketplace add lucianghinda/rubypowers
+codex plugin add rubypowers@rubypowers
 ```
 
 If you previously added the marketplace and Codex says the plugin was not found,
 refresh the marketplace snapshot and retry the add command:
 
 ```bash
-codex plugin marketplace upgrade superpowers-ruby
-codex plugin add superpowers-ruby@superpowers-ruby
+codex plugin marketplace upgrade rubypowers
+codex plugin add rubypowers@rubypowers
 ```
 
 Restart Codex after installing. Confirm the plugin is visible:
@@ -38,13 +54,13 @@ codex plugin list
 To update later:
 
 ```bash
-codex plugin marketplace upgrade superpowers-ruby
+codex plugin marketplace upgrade rubypowers
 ```
 
 To uninstall:
 
 ```bash
-codex plugin remove superpowers-ruby@superpowers-ruby
+codex plugin remove rubypowers@rubypowers
 ```
 
 ## Legacy Symlink Installation
@@ -61,13 +77,13 @@ going through Codex's plugin system, or if you're testing a local clone.
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/lucianghinda/superpowers-ruby.git ~/.codex/superpowers-ruby
+   git clone https://github.com/lucianghinda/rubypowers.git ~/.codex/rubypowers
    ```
 
 2. Create the skills symlink:
    ```bash
    mkdir -p ~/.agents/skills
-   ln -s ~/.codex/superpowers-ruby/skills ~/.agents/skills/superpowers-ruby
+   ln -s ~/.codex/rubypowers/skills ~/.agents/skills/rubypowers
    ```
 
 3. Restart Codex.
@@ -84,7 +100,7 @@ Use a junction instead of a symlink (works without Developer Mode):
 
 ```powershell
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.agents\skills"
-cmd /c mklink /J "$env:USERPROFILE\.agents\skills\superpowers-ruby" "$env:USERPROFILE\.codex\superpowers-ruby\skills"
+cmd /c mklink /J "$env:USERPROFILE\.agents\skills\rubypowers" "$env:USERPROFILE\.codex\rubypowers\skills"
 ```
 
 ## How It Works
@@ -94,20 +110,20 @@ The plugin install reads `.codex-plugin/plugin.json` and exposes the bundled
 
 The legacy install uses Codex's skill discovery directly. Codex scans
 `~/.agents/skills/` at startup, parses SKILL.md frontmatter, and loads skills on
-demand. Superpowers skills are made visible through a single symlink:
+demand. RubyPowers skills are made visible through a single symlink:
 
 ```
-~/.agents/skills/superpowers-ruby/ → ~/.codex/superpowers-ruby/skills/
+~/.agents/skills/rubypowers/ → ~/.codex/rubypowers/skills/
 ```
 
-The `using-superpowers` skill is discovered automatically and enforces skill usage discipline — no additional configuration needed.
+The `using-rubypowers` skill is discovered automatically and enforces skill usage discipline — no additional configuration needed.
 
 ## Usage
 
 Skills are discovered automatically. Codex activates them when:
 - You mention a skill by name (e.g., "use brainstorming")
 - The task matches a skill's description
-- The `using-superpowers` skill directs Codex to use one
+- The `using-rubypowers` skill directs Codex to use one
 
 ### Personal Skills
 
@@ -137,13 +153,20 @@ The `description` field is how Codex decides when to activate a skill automatica
 For plugin installs:
 
 ```bash
-codex plugin marketplace upgrade superpowers-ruby
+codex plugin marketplace upgrade rubypowers
 ```
 
-For legacy symlink installs:
+For legacy symlink installs, always pull from the clone's actual directory.
+Choose the command matching your clone:
 
+Pre-8.0.0 clone:
 ```bash
 cd ~/.codex/superpowers-ruby && git pull
+```
+
+New clone:
+```bash
+cd ~/.codex/rubypowers && git pull
 ```
 
 Skills update instantly through the symlink.
@@ -153,29 +176,30 @@ Skills update instantly through the symlink.
 For plugin installs:
 
 ```bash
-codex plugin remove superpowers-ruby@superpowers-ruby
-codex plugin marketplace remove superpowers-ruby
+codex plugin remove rubypowers@rubypowers
+codex plugin marketplace remove rubypowers
 ```
 
 For legacy symlink installs:
 
 ```bash
-rm ~/.agents/skills/superpowers-ruby
+rm ~/.agents/skills/superpowers-ruby 2>/dev/null || true
+rm ~/.agents/skills/rubypowers 2>/dev/null || true
 ```
 
 **Windows (PowerShell):**
 ```powershell
-Remove-Item "$env:USERPROFILE\.agents\skills\superpowers-ruby"
+Remove-Item "$env:USERPROFILE\.agents\skills\rubypowers"
 ```
 
-Optionally delete the clone: `rm -rf ~/.codex/superpowers-ruby` (Windows: `Remove-Item -Recurse -Force "$env:USERPROFILE\.codex\superpowers-ruby"`).
+Optionally delete the clone after removing its symlink: `rm -rf ~/.codex/superpowers-ruby` for an older clone, or the actual directory used by a newer install.
 
 ## Troubleshooting
 
 ### Skills not showing up
 
-1. Verify the symlink: `ls -la ~/.agents/skills/superpowers-ruby`
-2. Check skills exist: `ls ~/.codex/superpowers-ruby/skills`
+1. Verify the symlink: `ls -la ~/.agents/skills/rubypowers`
+2. Check skills exist: `ls ~/.codex/rubypowers/skills`
 3. Restart Codex — skills are discovered at startup
 
 ### Windows junction issues
@@ -184,5 +208,5 @@ Junctions normally work without special permissions. If creation fails, try runn
 
 ## Getting Help
 
-- Report issues: https://github.com/lucianghinda/superpowers-ruby/issues
-- Main documentation: https://github.com/lucianghinda/superpowers-ruby
+- Report issues: https://github.com/lucianghinda/rubypowers/issues
+- Main documentation: https://github.com/lucianghinda/rubypowers

@@ -1,7 +1,7 @@
 /**
- * Superpowers plugin for OpenCode.ai
+ * RubyPowers plugin for OpenCode.ai
  *
- * Injects superpowers-ruby bootstrap context into the first user message.
+ * Injects rubypowers bootstrap context into the first user message.
  * Auto-registers skills directory via config hook (no symlinks needed).
  */
 
@@ -33,13 +33,13 @@ const extractAndStripFrontmatter = (content) => {
   return { frontmatter, content: body };
 };
 
-export const SuperpowersPlugin = async ({ client, directory }) => {
-  const superpowersSkillsDir = path.resolve(__dirname, '../../skills');
+export const RubyPowersPlugin = async ({ client, directory }) => {
+  const rubypowersSkillsDir = path.resolve(__dirname, '../../skills');
 
   // Helper to generate bootstrap content
   const getBootstrapContent = () => {
-    // Try to load using-superpowers skill
-    const skillPath = path.join(superpowersSkillsDir, 'using-superpowers', 'SKILL.md');
+    // Try to load using-rubypowers skill
+    const skillPath = path.join(rubypowersSkillsDir, 'using-rubypowers', 'SKILL.md');
     if (!fs.existsSync(skillPath)) return null;
 
     const fullContent = fs.readFileSync(skillPath, 'utf8');
@@ -52,12 +52,12 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 - \`Skill\` tool → OpenCode's native \`skill\` tool
 - \`Read\`, \`Write\`, \`Edit\`, \`Bash\` → Your native tools
 
-Use OpenCode's native \`skill\` tool to list and load superpowers-ruby skills.`;
+Use OpenCode's native \`skill\` tool to list and load rubypowers skills.`;
 
     return `<EXTREMELY_IMPORTANT>
-You have superpowers for Ruby and Rails.
+You have RubyPowers: superpowers for Ruby and Rails.
 
-**IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
+**IMPORTANT: The using-rubypowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-rubypowers" again - that would be redundant.**
 
 ${content}
 
@@ -66,15 +66,15 @@ ${toolMapping}
   };
 
   return {
-    // Inject skills path into live config so OpenCode discovers superpowers skills
+    // Inject skills path into live config so OpenCode discovers RubyPowers skills
     // without requiring manual symlinks or config file edits.
     // This works because Config.get() returns a cached singleton — modifications
     // here are visible when skills are lazily discovered later.
     config: async (config) => {
       config.skills = config.skills || {};
       config.skills.paths = config.skills.paths || [];
-      if (!config.skills.paths.includes(superpowersSkillsDir)) {
-        config.skills.paths.push(superpowersSkillsDir);
+      if (!config.skills.paths.includes(rubypowersSkillsDir)) {
+        config.skills.paths.push(rubypowersSkillsDir);
       }
     },
 

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [8.0.0] - 2026-10-09
+
+### Changed
+
+- **Breaking rename and migration:** RubyPowers replaces the `superpowers-ruby`
+  plugin name and skill prefix in version 8.0.0. Reinstall as
+  `rubypowers@rubypowers` on plugin platforms. Existing projects keep their
+  `docs/superpowers/` plans and specs, which the skills continue to read; new
+  projects use `docs/rubypowers/` by default. The OpenCode, Codex, and README
+  guides document platform-specific migration steps.
+
 ## [7.5.0] - 2026-08-13
 
 ### Fixed

@@ -1,4 +1,17 @@
-# Superpowers Release Notes
+# RubyPowers Release Notes
+
+## v8.0.0 (2026-10-09)
+
+### RubyPowers Rename
+
+- **Breaking plugin and skill namespace rename** — `superpowers-ruby` becomes
+  `rubypowers`, with the display name RubyPowers. Existing installs must remove
+  the old plugin and install the new name. Platform-specific steps are in the
+  README, Codex, and OpenCode install guides.
+- **Existing project documents remain supported** — plans and specs in
+  `docs/superpowers/` continue to be read and new documents stay there when
+  that legacy folder already exists. New projects default to `docs/rubypowers/`.
+- **OpenCode package pin** — the installation guide now pins version `v8.0.0`.
 
 ## v7.5.0 (2026-08-13)
 

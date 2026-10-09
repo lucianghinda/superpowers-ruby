@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Propose a change or addition to Superpowers
+about: Propose a change or addition to RubyPowers
 labels: enhancement
 ---
 
@@ -25,7 +25,7 @@ progress, and some were intentionally declined.
 <!-- What other approaches could solve the same problem? Why is your
      proposal better? -->
 
-## Is this appropriate for core Superpowers?
+## Is this appropriate for core RubyPowers?
 <!-- Would this benefit someone working on a completely different kind
      of project? If this is specific to your domain, workflow, or a
      third-party tool, it may belong as its own plugin instead. -->

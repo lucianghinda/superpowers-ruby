@@ -11,7 +11,7 @@ Load plan, review critically, execute all tasks, report when complete.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
-**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers-ruby:subagent-driven-development instead of this skill.
+**Note:** Tell your human partner that RubyPowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use rubypowers:subagent-driven-development instead of this skill.
 
 ## The Process
 
@@ -33,7 +33,7 @@ For each task:
 
 After all tasks complete and verified:
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
-- **REQUIRED SUB-SKILL:** Use superpowers-ruby:finishing-a-development-branch
+- **REQUIRED SUB-SKILL:** Use rubypowers:finishing-a-development-branch
 - Follow that skill to verify tests, present options, execute choice
 
 ## When to Stop and Ask for Help
@@ -65,6 +65,6 @@ After all tasks complete and verified:
 ## Integration
 
 **Required workflow skills:**
-- **superpowers-ruby:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
-- **superpowers-ruby:writing-plans** - Creates the plan this skill executes
-- **superpowers-ruby:finishing-a-development-branch** - Complete development after all tasks
+- **rubypowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **rubypowers:writing-plans** - Creates the plan this skill executes
+- **rubypowers:finishing-a-development-branch** - Complete development after all tasks
