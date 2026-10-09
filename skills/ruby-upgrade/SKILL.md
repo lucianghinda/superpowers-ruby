@@ -16,7 +16,7 @@ RuboCop, type checks, and the test suite.
 
 **This is the Ruby-interpreter upgrade.** For *Rails framework* version bumps
 (6.x → 7.x → 8.x, `config.load_defaults`, railsdiff), use the
-`superpowers-ruby:rails-upgrade` skill instead. They are often done together —
+`rubypowers:rails-upgrade` skill instead. They are often done together —
 run the Rails upgrade's Ruby-compatibility table first to confirm the target
 Ruby is supported by the current Rails version.
 
@@ -161,7 +161,7 @@ bundle exec tapioca gem     # only if the project uses Tapioca — regenerate RB
 On failure: append a "Verification failures" section with the output, then
 either fix-forward the obvious cases (RBI staleness, safe RuboCop autocorrects)
 or stop and surface to the user. Do not claim success without showing passing
-output — see `superpowers-ruby:verification-before-completion`.
+output — see `rubypowers:verification-before-completion`.
 
 Native-extension hint: if `bundle install` succeeded but tests crash on
 `require` of a C-extension gem, a cached `vendor/bundle` was built against the
@@ -196,4 +196,4 @@ Suggest 24-hour monitoring on whatever error tracker the project uses for:
 | Rewriting a private registry host on the Docker image | Keep the prefix; change only the tag |
 | Adding `gem "cgi"`/`"ostruct"` blindly | Add only when the removed/demoted API is actually used |
 | Declaring "tests pass" without output | Show the passing run (verification-before-completion) |
-| Confusing this with a Rails upgrade | Rails framework bump → `superpowers-ruby:rails-upgrade` |
+| Confusing this with a Rails upgrade | Rails framework bump → `rubypowers:rails-upgrade` |

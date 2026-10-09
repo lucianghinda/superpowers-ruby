@@ -4,7 +4,9 @@ Use this template when dispatching a spec document reviewer subagent.
 
 **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
 
-**Dispatch after:** Spec document is written to docs/superpowers/specs/
+**Dispatch after:** The spec document is written to the selected specs folder:
+`docs/rubypowers/specs/` for new projects, or the existing
+`docs/superpowers/specs/` folder for legacy projects.
 
 ```
 Task tool (general-purpose):

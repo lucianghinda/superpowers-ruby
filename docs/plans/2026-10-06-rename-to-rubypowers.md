@@ -17,6 +17,40 @@
 
 **Out of scope:** Legacy `superpowers:` prefixes (no `-ruby`) that already exist in a few skills and test plans. They predate this fork's prefix and are a separate cleanup.
 
+## Review amendments (2026-10-09)
+
+These amendments override conflicting steps below and are part of the implementation acceptance criteria.
+
+- **Complete current branding:** Audit all case-insensitive `superpowers` occurrences, including filenames, visible brainstorming HTML, OpenCode documentation titles, and `.superpowers/brainstorm` runtime storage. Rename current project branding to RubyPowers and current runtime storage to `.rubypowers/brainstorm`. Keep upstream URLs/attribution, historical documents, explicit migration instructions, and legacy compatibility reads intentional. Do not use a narrow replacement-pattern audit as proof of completeness.
+- **Working Codex migration:** Updating `~/.codex/superpowers-ruby` does not create `~/.codex/rubypowers`. The old-bootstrap migration must explicitly create the new discovery symlink pointing at the existing old clone, or move the clone before linking. Keep subsequent update/uninstall instructions consistent with the selected installation path.
+- **Consistent OpenCode fixtures:** Rename paths with and without a trailing slash, including the setup `mkdir`, and include `tests/opencode/test-priority.sh`. Execute the local setup/plugin-loading checks, not only `bash -n`. Remove obsolete setup dependencies if they reference directories no longer present in this repository.
+- **Complete migration instructions:** The OpenCode symlink migration must explicitly direct users to install the new package after removing the old symlinks.
+- **Consistent document locations:** Every save, promotion, review, and completion instruction must use the selected existing legacy directory or the new default; later instructions must not contradict the compatibility bullets.
+- **Verification:** Add executable regression coverage for mixed old/new handoff paths and the Codex migration symlink. Verify runtime/bootstrap identity, manifests, OpenCode registration, visible branding, and retained history. Record unavailable platform checks honestly.
+- **Execution:** Continue on the current PR branch. Use Ruby stdlib for utility scripts. Keep reviewable repository changes separate from the GitHub repository rename, local checkout move, merge, and release; those remain the post-approval steps in Task 13. Commit messages must follow the workspace Lore protocol rather than the example messages below.
+
+### Execution status
+
+- [x] Incorporate review findings into the plan.
+- [x] Rename current identities, paths, and branding.
+- [x] Implement compatibility and migration instructions.
+- [x] Repair and run relevant tests; audit the complete diff.
+- [x] Complete spec and quality reviews (Luna subagents; reported gaps fixed and re-reviewed).
+- [ ] Post-approval repository rename, merge, and release (Task 13).
+
+### Verification record (2026-10-09)
+
+- `ruby tests/scripts/test-rename.rb`: eight checks pass, covering legacy/current/mixed/empty handoff documents, bootstrap output for Claude Code/Cursor/Copilot, and executing the documented Codex discovery-symlink migration against an existing clone fixture.
+- `bash tests/opencode/run-tests.sh`: local plugin-loading suite passes. Setup now copies skills, hooks, and package metadata instead of the removed `lib/` directory.
+- `node tests/brainstorm-server/ws-protocol.test.js`: 31 checks pass.
+- `node tests/brainstorm-server/server.test.js`: 25 checks pass. Corrected its stale waiting-page expectation to the existing agent-neutral text.
+- `bash tests/brainstorm-server/windows-lifecycle.test.sh`: eight checks pass; three Windows-only checks skipped on macOS. Corrected the stale `server.js` fixture path to `server.cjs`.
+- `bash tests/scripts/test-fetch-changelogs.sh`: eight checks pass; network checks skipped because the network was unavailable.
+- Claude CLI validates both plugin and marketplace manifests. All seven JSON manifests parse, all 31 Bash scripts parse, and all 35 skill frontmatter names match their folders.
+- `scripts/bump-version.sh --check`: all six declared version fields are 8.0.0. Historical release entries and all six relocated plans/specs are byte-identical to the pre-rename versions.
+- Broad, case-insensitive old-name audit reviewed: retained references are upstream attribution, migration/compatibility instructions and fixtures, the generic tagline, and the explicitly excluded legacy invocation/synthetic test fixtures.
+- Full installed-platform/LLM integration checks were not run. Local validation does not establish live marketplace installation or remote URL availability. Repository rename, redirect checks, merge, tag, release, and reinstall remain post-approval work.
+
 ---
 
 ## Name map

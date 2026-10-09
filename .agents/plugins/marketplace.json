@@ -1,14 +1,14 @@
 {
-  "name": "superpowers-ruby",
+  "name": "rubypowers",
   "interface": {
-    "displayName": "Superpowers Ruby"
+    "displayName": "RubyPowers"
   },
   "plugins": [
     {
-      "name": "superpowers-ruby",
+      "name": "rubypowers",
       "source": {
         "source": "local",
-        "path": "./plugins/superpowers-ruby"
+        "path": "./plugins/rubypowers"
       },
       "policy": {
         "installation": "AVAILABLE",

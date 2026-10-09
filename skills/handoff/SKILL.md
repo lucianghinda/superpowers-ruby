@@ -21,15 +21,15 @@ Capture the current session's state into a structured handoff document so a futu
 - When handing off work to another person or agent
 
 **Don't use when:**
-- Work is fully complete (use `superpowers-ruby:finishing-a-development-branch` instead)
-- Capturing a solved problem (use `superpowers-ruby:compound` instead)
+- Work is fully complete (use `rubypowers:finishing-a-development-branch` instead)
+- Capturing a solved problem (use `rubypowers:compound` instead)
 
 ## Quick Reference
 
 ```bash
-/superpowers-ruby:handoff              # Create a full handoff document
-/superpowers-ruby:handoff-resume       # Resume from the latest handoff
-/superpowers-ruby:handoff-list         # List available handoffs
+/rubypowers:handoff              # Create a full handoff document
+/rubypowers:handoff-resume       # Resume from the latest handoff
+/rubypowers:handoff-list         # List available handoffs
 ```
 
 **Output location:** `docs/handoffs/YYYY-MM-DD-<topic>.md`
@@ -48,8 +48,10 @@ git status --porcelain
 
 # Detect plan files
 ls .claude/plans/*.md 2>/dev/null
-ls docs/superpowers/specs/*.md 2>/dev/null
+ls docs/rubypowers/plans/*.md 2>/dev/null
+ls docs/rubypowers/specs/*.md 2>/dev/null
 ls docs/superpowers/plans/*.md 2>/dev/null
+ls docs/superpowers/specs/*.md 2>/dev/null
 ```
 
 ### Step 2: Generate Topic
@@ -143,7 +145,7 @@ Handoff documents are plain markdown files in `docs/handoffs/` — any agent or 
 
 **Use cases:**
 
-- **Claude Code → OpenCode:** Create a handoff in Claude Code, then open OpenCode in the same project. Use `/superpowers-ruby:handoff-resume` to pick up where Claude Code left off.
+- **Claude Code → OpenCode:** Create a handoff in Claude Code, then open OpenCode in the same project. Use `/rubypowers:handoff-resume` to pick up where Claude Code left off.
 - **Agent → Human:** A developer reviews `docs/handoffs/` to understand what the agent was working on, then continues manually or starts a new session with context.
 - **Human → Agent:** A developer writes a handoff document manually (following the template above) to brief an agent on work-in-progress before starting a session.
 - **Subagent → Parent:** A subagent creates a handoff before finishing, so the orchestrating agent can dispatch a new subagent with full context.
@@ -153,7 +155,7 @@ Handoff documents are plain markdown files in `docs/handoffs/` — any agent or 
 
 ## Pairs With
 
-- **superpowers-ruby:handoff-resume** — Resume from a handoff in a new session
-- **superpowers-ruby:handoff-list** — View available handoffs
-- **superpowers-ruby:compound** — For capturing *solved* problems (handoff is for *in-progress* work)
-- **superpowers-ruby:finishing-a-development-branch** — For *completed* work (handoff is for *unfinished* work)
+- **rubypowers:handoff-resume** — Resume from a handoff in a new session
+- **rubypowers:handoff-list** — View available handoffs
+- **rubypowers:compound** — For capturing *solved* problems (handoff is for *in-progress* work)
+- **rubypowers:finishing-a-development-branch** — For *completed* work (handoff is for *unfinished* work)

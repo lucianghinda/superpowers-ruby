@@ -1,6 +1,11 @@
-# Superpowers (Ruby/Rails Edition)
+# RubyPowers
 
 A Ruby on Rails–focused fork of [obra/superpowers](https://github.com/obra/superpowers) — a complete software development workflow for coding agents built on composable "skills".
+
+Known as **superpowers-ruby** before version **8.0.0**. Version 8.0.0 introduces
+the RubyPowers product, plugin, and skill namespace. The GitHub repository is
+also being renamed to `lucianghinda/rubypowers`; GitHub's redirect from the old
+repository URL is expected after that rename is complete.
 
 ## Ruby/Rails Focus
 
@@ -17,7 +22,7 @@ This fork extends the core superpowers workflow with a full Ruby on Rails skills
 
 All examples, test commands, and file references use Ruby/Rails conventions throughout.
 
-Superpowers is a complete software development workflow for your coding agents, built on top of a set of composable "skills" and some initial instructions that make sure your agent uses them.
+RubyPowers is a complete software development workflow for your coding agents, built on top of a set of composable "skills" and some initial instructions that make sure your agent uses them.
 
 
 Here are the sources that I used to get the skills that are embeded here:
@@ -38,7 +43,7 @@ After you've signed off on the design, your agent puts together an implementatio
 
 Next up, once you say "go", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for Claude to be able to work autonomously for a couple hours at a time without deviating from the plan you put together.
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
+There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has RubyPowers.
 
 
 ## Sponsorship
@@ -52,7 +57,7 @@ Thanks!
 
 ## Installation
 
-`superpowers-ruby` ships as a **native plugin** for three platforms — **Codex**,
+`rubypowers` ships as a **native plugin** for three platforms — **Codex**,
 **Claude Code**, and **Copilot CLI** — using each platform's plugin marketplace.
 A single repo with three platform-specific manifests
 (`.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and
@@ -63,22 +68,47 @@ Quick reference:
 
 | Platform | Install model | Install command |
 |---|---|---|
-| **Claude Code** | Native plugin | `/plugin marketplace add lucianghinda/superpowers-ruby` then `/plugin install superpowers-ruby@superpowers-ruby` |
-| **Codex** (7.0.0+) | Native plugin | `codex plugin marketplace add lucianghinda/superpowers-ruby` then `codex plugin add superpowers-ruby@superpowers-ruby` |
-| **GitHub Copilot CLI** | Native plugin | `copilot plugin marketplace add lucianghinda/superpowers-ruby` then `copilot plugin install superpowers-ruby@superpowers-ruby` |
-| **Cursor** | Local clone (no marketplace yet) | `cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpowers-ruby` |
+| **Claude Code** | Native plugin | `/plugin marketplace add lucianghinda/rubypowers` then `/plugin install rubypowers@rubypowers` |
+| **Codex** (8.0.0+) | Native plugin | `codex plugin marketplace add lucianghinda/rubypowers` then `codex plugin add rubypowers@rubypowers` |
+| **GitHub Copilot CLI** | Native plugin | `copilot plugin marketplace add lucianghinda/rubypowers` then `copilot plugin install rubypowers@rubypowers` |
+| **Cursor** | Local clone (no marketplace yet) | `cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/rubypowers` |
 | **OpenCode** | Agent-driven setup | See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) |
-| **Gemini CLI** | Extension | `gemini extensions install https://github.com/lucianghinda/superpowers-ruby` |
+| **Gemini CLI** | Extension | `gemini extensions install https://github.com/lucianghinda/rubypowers` |
 
 Detailed instructions per platform follow below.
+
+### Migrating from superpowers-ruby
+
+Version 8.0.0 changes the plugin and skill namespace from `superpowers-ruby`
+to `rubypowers`. Remove the old plugin and install RubyPowers using the command
+for your platform. Existing projects keep using `docs/superpowers/` when that
+folder already exists; new projects default to `docs/rubypowers/`. The skills
+continue to read existing legacy plan and spec files.
+
+| Platform | Remove old install | Install RubyPowers |
+|---|---|---|
+| Claude Code | `/plugin uninstall superpowers-ruby@superpowers-ruby` then `/plugin marketplace remove superpowers-ruby` | `/plugin marketplace add lucianghinda/rubypowers` then `/plugin install rubypowers@rubypowers` |
+| Codex | `codex plugin remove superpowers-ruby@superpowers-ruby` | `codex plugin marketplace add lucianghinda/rubypowers` then `codex plugin add rubypowers@rubypowers` |
+| GitHub Copilot CLI | `copilot plugin uninstall superpowers-ruby` | `copilot plugin marketplace add lucianghinda/rubypowers` then `copilot plugin install rubypowers@rubypowers` |
+| Cursor | Remove the old local plugin directory | Clone `https://github.com/lucianghinda/rubypowers` into `~/.cursor/plugins/local/rubypowers` |
+| OpenCode | Remove the `superpowers-ruby` plugin entry from `opencode.json` | Add `rubypowers@git+https://github.com/lucianghinda/rubypowers.git` to `opencode.json` |
+| Gemini CLI | `gemini extensions uninstall superpowers-ruby` | `gemini extensions install https://github.com/lucianghinda/rubypowers` |
+
+If the repository rename has not completed yet, use the new repository URL when
+it becomes available; the old GitHub URL is expected to redirect only after
+the rename.
+
+Legacy Codex clone updates must use the path where the clone actually lives.
+Pre-8.0.0 bootstrap installs remain at `~/.codex/superpowers-ruby`; new clones
+use `~/.codex/rubypowers`. See [the Codex migration guide](.codex/INSTALL.md).
 
 ### Claude Code — Option 1: Install from GitHub
 
 Register the marketplace, then install the plugin:
 
 ```bash
-/plugin marketplace add lucianghinda/superpowers-ruby
-/plugin install superpowers-ruby@superpowers-ruby
+/plugin marketplace add lucianghinda/rubypowers
+/plugin install rubypowers@rubypowers
 ```
 
 ### Claude Code — Option 2: Install from local clone
@@ -86,8 +116,8 @@ Register the marketplace, then install the plugin:
 Clone the repository and install from the local directory:
 
 ```bash
-git clone https://github.com/lucianghinda/superpowers-ruby.git
-/plugin install ./superpowers-ruby
+git clone https://github.com/lucianghinda/rubypowers.git
+/plugin install ./rubypowers
 ```
 
 ### Cursor 
@@ -95,25 +125,25 @@ git clone https://github.com/lucianghinda/superpowers-ruby.git
 Until the plugin is published on the cursor marketplace, use this command : 
 
 ```
-cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/superpowers-ruby
+cd ~/.cursor/plugins/local/ && git clone https://github.com/lucianghinda/rubypowers
 ```
 
 ### Codex
 
-superpowers-ruby 7.0.0+ ships with a Codex plugin manifest, so it installs via Codex's
+RubyPowers 8.0.0+ ships with a Codex plugin manifest, so it installs via Codex's
 native plugin system:
 
 ```bash
-codex plugin marketplace add lucianghinda/superpowers-ruby
-codex plugin add superpowers-ruby@superpowers-ruby
+codex plugin marketplace add lucianghinda/rubypowers
+codex plugin add rubypowers@rubypowers
 ```
 
 If you previously added the marketplace and Codex says the plugin was not found,
 refresh the marketplace snapshot and retry the add command:
 
 ```bash
-codex plugin marketplace upgrade superpowers-ruby
-codex plugin add superpowers-ruby@superpowers-ruby
+codex plugin marketplace upgrade rubypowers
+codex plugin add rubypowers@rubypowers
 ```
 
 A legacy symlink install (clone + `ln -s …skills ~/.agents/skills/`) is also
@@ -127,7 +157,7 @@ for both paths and the migration guide.
 Tell OpenCode:
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/superpowers-ruby/refs/heads/main/.opencode/INSTALL.md
+Fetch and follow instructions from https://raw.githubusercontent.com/lucianghinda/rubypowers/refs/heads/main/.opencode/INSTALL.md
 ```
 
 **Detailed docs:** [docs/README.opencode.md](docs/README.opencode.md)
@@ -135,21 +165,21 @@ Fetch and follow instructions from https://raw.githubusercontent.com/lucianghind
 ### GitHub Copilot CLI
 
 ```bash
-copilot plugin marketplace add lucianghinda/superpowers-ruby
-copilot plugin install superpowers-ruby@superpowers-ruby
+copilot plugin marketplace add lucianghinda/rubypowers
+copilot plugin install rubypowers@rubypowers
 ```
 
 ### Gemini CLI
 
 ```bash
-gemini extensions install https://github.com/lucianghinda/superpowers-ruby
+gemini extensions install https://github.com/lucianghinda/rubypowers
 ```
 
 See the [Updating](#updating) section below for update commands.
 
 ### Verify Installation
 
-Start a new session in your chosen platform and ask for something that should trigger a skill (for example, "help me plan this feature" or "let's debug this issue"). The agent should automatically invoke the relevant superpowers skill.
+Start a new session in your chosen platform and ask for something that should trigger a skill (for example, "help me plan this feature" or "let's debug this issue"). The agent should automatically invoke the relevant RubyPowers skill.
 
 ## The Basic Workflow
 
@@ -212,7 +242,7 @@ Start a new session in your chosen platform and ask for something that should tr
 
 **Meta**
 - **writing-skills** - Create new skills following best practices (includes testing methodology)
-- **using-superpowers** - Introduction to the skills system
+- **using-rubypowers** - Introduction to the skills system
 
 ## Philosophy
 
@@ -249,20 +279,28 @@ the platform you installed on.
 ### Claude Code
 
 ```bash
-/plugin update superpowers-ruby
+/plugin update rubypowers
 ```
 
 ### Codex
 
 ```bash
-codex plugin marketplace upgrade superpowers-ruby
+codex plugin marketplace upgrade rubypowers
 ```
 
 If you're on the legacy symlink install (skills under `~/.agents/skills/`),
-update by pulling the clone instead:
+update by pulling the clone from the directory where it is installed. Use the
+pre-8.0.0 path for an existing `superpowers-ruby` clone, or the RubyPowers path
+for a new clone:
 
+Pre-8.0.0 clone:
 ```bash
 cd ~/.codex/superpowers-ruby && git pull
+```
+
+New clone:
+```bash
+cd ~/.codex/rubypowers && git pull
 ```
 
 See [`.codex/INSTALL.md`](.codex/INSTALL.md) for migrating from symlink to
@@ -271,7 +309,7 @@ plugin.
 ### GitHub Copilot CLI
 
 ```bash
-copilot plugin update superpowers-ruby
+copilot plugin update rubypowers
 ```
 
 ### Cursor
@@ -279,7 +317,7 @@ copilot plugin update superpowers-ruby
 Pull the latest in the plugin directory:
 
 ```bash
-cd ~/.cursor/plugins/local/superpowers-ruby && git pull
+cd ~/.cursor/plugins/local/rubypowers && git pull
 ```
 
 ### OpenCode
@@ -291,7 +329,7 @@ machine.
 ### Gemini CLI
 
 ```bash
-gemini extensions update superpowers-ruby
+gemini extensions update rubypowers
 ```
 
 ## License
@@ -307,4 +345,4 @@ For community support, questions, and sharing what you're building with Superpow
 ## Support
 
 - **Discord**: [Join us on Discord](https://discord.gg/Jd8Vphy9jq)
-- **Issues**: https://github.com/lucianghinda/superpowers-ruby/issues
+- **Issues**: https://github.com/lucianghinda/rubypowers/issues

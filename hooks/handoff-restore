@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PostCompact hook for superpowers plugin
+# PostCompact hook for RubyPowers plugin
 # Restores the latest unrestored handoff document as additionalContext
 
 set -euo pipefail

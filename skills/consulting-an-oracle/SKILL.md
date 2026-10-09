@@ -23,9 +23,9 @@ When in-session debugging has stalled, package the failed investigation into a s
 - Before compaction, when the failed investigation should outlive this session as a one-shot prompt
 
 **Don't use when:**
-- You haven't actually tried to debug yet → use `superpowers-ruby:systematic-debugging`
-- The bug is solved → use `superpowers-ruby:compound`
-- Handing off to another Claude session with full plugin/tooling → use `superpowers-ruby:handoff`
+- You haven't actually tried to debug yet → use `rubypowers:systematic-debugging`
+- The bug is solved → use `rubypowers:compound`
+- Handing off to another Claude session with full plugin/tooling → use `rubypowers:handoff`
 - The user wants you to keep trying → keep trying
 
 ## Output

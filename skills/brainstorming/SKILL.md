@@ -19,8 +19,8 @@ Every project goes through this process. A todo list, a single-function utility,
 
 ## When NOT to Use
 
-- **Debugging / fixing a regression** — use superpowers-ruby:systematic-debugging. If the fix turns out to change intended behavior, come back here.
-- **Executing an already-approved plan** — use superpowers-ruby:executing-plans or subagent-driven-development.
+- **Debugging / fixing a regression** — use rubypowers:systematic-debugging. If the fix turns out to change intended behavior, come back here.
+- **Executing an already-approved plan** — use rubypowers:executing-plans or subagent-driven-development.
 - **Pure research or questions** — no implementation ahead means nothing to design.
 
 ## Checklist
@@ -32,7 +32,7 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Finalize design doc** — promote the running draft (see "Persist as you go") to final at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, including the Decisions log, and commit
+6. **Finalize design doc** — promote the running draft (see "Persist as you go") to final at the selected specs folder, including the Decisions log, and commit. New projects use `docs/rubypowers/specs/`; if `docs/superpowers/specs/` already exists, keep the draft and final spec there.
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -123,7 +123,12 @@ digraph brainstorming {
 
 **Documentation:**
 
-- Promote the running draft to the final spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (remove the DRAFT header)
+- New projects save drafts and final specs to `docs/rubypowers/specs/`. If
+  `docs/superpowers/specs/` already exists, use that legacy folder for the
+  draft, promotion, final save, and any reviewer instructions. Keep using the
+  selected actual folder throughout the workflow; do not split a project's
+  specs between both locations.
+- Promote the running draft to `<selected specs folder>/YYYY-MM-DD-<topic>-design.md` (remove the DRAFT header)
   - (User preferences for spec location override this default)
 - The spec MUST include a `## Decisions` section: every explicit user decision from the brainstorm, stated verbatim or near-verbatim, each with a one-line rationale. Downstream spec reviews and plan-fidelity checks key off this section.
 - Use elements-of-style:writing-clearly-and-concisely skill if available

@@ -1,15 +1,15 @@
 {
-  "name": "superpowers-ruby",
-  "description": "Marketplace for Superpowers Ruby/Rails skills library",
+  "name": "rubypowers",
+  "description": "Marketplace for RubyPowers/Rails skills library",
   "owner": {
     "name": "Lucian Ghinda",
     "email": "lucian.ghinda@gmail.com"
   },
   "plugins": [
     {
-      "name": "superpowers-ruby",
+      "name": "rubypowers",
       "description": "Ruby/Rails skills library for Claude Code: TDD with Minitest, Rails patterns, Hotwire, Brakeman, Sandi Metz rules, 37signals style, and proven development workflows",
-      "version": "7.5.0",
+      "version": "8.0.0",
       "source": "./",
       "author": {
         "name": "Lucian Ghinda",

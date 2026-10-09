@@ -15,7 +15,7 @@ Display all available handoff documents, both active (unrestored) and archived (
 
 - When starting a session and unsure if handoffs exist
 - When you want to review past handoff history
-- Before using `superpowers-ruby:handoff-resume` to see what's available
+- Before using `rubypowers:handoff-resume` to see what's available
 
 ## The Process
 
@@ -56,16 +56,16 @@ Present results with active (unrestored) handoffs first, then archived, sorted b
 ```
 No handoff documents found in docs/handoffs/ or docs/handoffs/_archive/.
 
-Use `/superpowers-ruby:handoff` to create one.
+Use `/rubypowers:handoff` to create one.
 ```
 
 ### Step 4: Offer Next Action
 
 If active handoffs exist, offer:
 
-> "Would you like to resume from one of the active handoffs? Use `/superpowers-ruby:handoff-resume`."
+> "Would you like to resume from one of the active handoffs? Use `/rubypowers:handoff-resume`."
 
 ## Pairs With
 
-- **superpowers-ruby:handoff** — Creates new handoff documents
-- **superpowers-ruby:handoff-resume** — Resume from a specific handoff
+- **rubypowers:handoff** — Creates new handoff documents
+- **rubypowers:handoff-resume** — Resume from a specific handoff
